@@ -42,7 +42,7 @@ namespace ReverseTicTacToeLogic
 
         private const char k_AccessToSlotFailedChar = '0';
         private static int s_DefaultBoardDimension = 3;
-        private static int s_I_GameBoardMinimumDimension = 3;
+        private static int s_GameBoardMinimumDimension = 3;
         private static int s_GameBoardMaximumDimension = 9;
         private static char s_DefaultPlayer1Char = 'X';
         private static char s_DefaultPlayer2Char = 'O';
@@ -66,7 +66,7 @@ namespace ReverseTicTacToeLogic
         public ReverseTicTacToe(int i_BoardDimension, eGameMode i_GameMode)
         {
             //Ofir - since we didnt learn exceptions yet, how should be handle out of range board size in constructor?
-            m_BoardDimension = IsInRange(i_BoardDimension, s_GameBoardMaximumDimension, s_I_GameBoardMinimumDimension)
+            m_BoardDimension = IsInRange(i_BoardDimension, s_GameBoardMaximumDimension, s_GameBoardMinimumDimension)
                                    ? i_BoardDimension : s_DefaultBoardDimension;
             m_GameMode = i_GameMode;
             m_Player1Char = s_DefaultPlayer1Char;
@@ -90,8 +90,8 @@ namespace ReverseTicTacToeLogic
             }
             set
             {
-                if(m_GameStatus == eGameStatus.ClearBoard && IsInRange(value, s_I_GameBoardMinimumDimension,
-                       s_GameBoardMaximumDimension ))
+                if (m_GameStatus == eGameStatus.ClearBoard && IsInRange(value, s_GameBoardMinimumDimension,
+                       s_GameBoardMaximumDimension))
                 {
                     m_BoardDimension = value;
                     m_GameBoard = new char[m_BoardDimension, m_BoardDimension];
@@ -116,19 +116,19 @@ namespace ReverseTicTacToeLogic
         public bool AttemptMove(int i_Row, int i_Col, out eLastMoveStatus o_MoveStatus)
         {
             o_MoveStatus = eLastMoveStatus.Good;
-            char charToInsert = (m_CurrentTurn == eTurns.Player1) ? m_Player1Char : m_Player2Char;
+            char charToInsert = GetCurrentPlayersChar();
             const bool v_MoveMadeSuccessfully = true;
             bool moveMade = !v_MoveMadeSuccessfully;
 
-            if(!IsSlotIndexWithinBounds(i_Row, i_Col))
+            if (!IsSlotIndexWithinBounds(i_Row, i_Col))
             {
                 o_MoveStatus = eLastMoveStatus.FailedOutOfBounds;
             }
-            else if(IsGameOver())
+            else if (IsGameOver())
             {
                 o_MoveStatus = eLastMoveStatus.FailedGameOver;
             }
-            else if(!IsSlotFree(i_Row, i_Col))
+            else if (!IsSlotFree(i_Row, i_Col))
             {
                 o_MoveStatus = eLastMoveStatus.FailedSlotTaken;
             }
@@ -145,16 +145,17 @@ namespace ReverseTicTacToeLogic
         //This functions assumes the move is legal and can be done.
         private void makeMove(int i_Row, int i_Col)
         {
-            m_GameBoard[i_Row - 1, i_Col - 1] = (m_CurrentTurn == eTurns.Player1) ? m_Player1Char : m_Player2Char;
-            if(isSlotPartOfFullSequence(i_Row, i_Col))
+            m_GameBoard[i_Row - 1, i_Col - 1] = GetCurrentPlayersChar();
+            if (isSlotPartOfFullSequence(i_Row, i_Col))
             {
-                m_GameStatus = (m_CurrentTurn == eTurns.Player1) ? eGameStatus.Player2Won : eGameStatus.Player2Won;
-                if((m_CurrentTurn == eTurns.Player1))
+                if ((m_CurrentTurn == eTurns.Player1))
                 {
+                    m_GameStatus = eGameStatus.Player2Won;
                     m_Player2Score++;
                 }
                 else
                 {
+                    m_GameStatus = eGameStatus.Player1Won;
                     m_Player1Score++;
                 }
             }
@@ -163,6 +164,13 @@ namespace ReverseTicTacToeLogic
                 switchTurns();
             }
         }
+
+        public char GetCurrentPlayersChar()
+        {
+            return (m_CurrentTurn == eTurns.Player1) ? m_Player1Char : m_Player2Char;
+        }
+
+
 
         //OFIR - we could make this a bit more efficient by after each direction checking if we've hit a sequence, but that would make the
         //code much uglier, what do you think?
@@ -179,7 +187,7 @@ namespace ReverseTicTacToeLogic
             int inclinedDiagonalSequence = 1 + SequenceSizeFromSlotToDirection(i_Row, i_Col, eBoardScanningDirections.BottomLeft) +
                                      SequenceSizeFromSlotToDirection(i_Row, i_Col, eBoardScanningDirections.TopRight);
 
-            if(verticalSequence == m_BoardDimension || horizontalSequence == m_BoardDimension
+            if (verticalSequence == m_BoardDimension || horizontalSequence == m_BoardDimension
                                                     || declinedDiagonalSequence == m_BoardDimension
                                                     || inclinedDiagonalSequence == m_BoardDimension)
             {
@@ -192,7 +200,7 @@ namespace ReverseTicTacToeLogic
 
         //This function will scan the board, STARTING from the given slot(i_Row, i_Col), and TOWARDS the given direction.
         //It will return how many EQUAL SLOTS (to the starting slot) there are in that direction - NOT including the original slot.
-        private int SequenceSizeFromSlotToDirection(int i_Row,int i_Col, eBoardScanningDirections i_ScanningDirection)
+        private int SequenceSizeFromSlotToDirection(int i_Row, int i_Col, eBoardScanningDirections i_ScanningDirection)
         {
             const bool v_insideSequence = true;
             bool isInsideSequence = v_insideSequence;
@@ -268,7 +276,7 @@ namespace ReverseTicTacToeLogic
         {
             const bool v_SlotFree = true;
             bool isSlotFree;
-            if(!IsSlotIndexWithinBounds(i_Row, i_Col))
+            if (!IsSlotIndexWithinBounds(i_Row, i_Col))
                 isSlotFree = !v_SlotFree;
             else
             {
@@ -297,7 +305,6 @@ namespace ReverseTicTacToeLogic
 
         public void ClearBoard()
         {
-            //maybe switch to foreach here?
             for (int i = 0; i < m_BoardDimension; i++)
             {
                 for (int j = 0; j < m_BoardDimension; j++)
