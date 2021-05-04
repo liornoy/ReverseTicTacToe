@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -20,7 +21,10 @@ namespace ReverseTicTacToeLogic
 
         public enum eLastMoveStatus
         {
-            Good, FailedSlotTaken, FailedGameOver, FailedOutOfBounds
+            Good,
+            FailedSlotTaken,
+            FailedGameOver,
+            FailedOutOfBounds
         }
 
 
@@ -29,35 +33,51 @@ namespace ReverseTicTacToeLogic
             PvP,
             PvC
         }
+
         public enum eTurns
         {
-            Player1, Player2
+            Player1,
+            Player2,
         }
 
         private enum eBoardScanningDirections
         {
-            Up, Down, Right, Left, TopRight, TopLeft, BottomRight, BottomLeft,
+            Up,
+            Down,
+            Right,
+            Left,
+            TopRight,
+            TopLeft,
+            BottomRight,
+            BottomLeft,
         }
 
-
         private const char k_AccessToSlotFailedChar = '0';
-        private static int s_DefaultBoardDimension = 3;
-        private static int s_GameBoardMinimumDimension = 3;
-        private static int s_GameBoardMaximumDimension = 9;
-        private static char s_DefaultPlayer1Char = 'X';
-        private static char s_DefaultPlayer2Char = 'O';
+        private const int k_StartingDefaultBoardDimension = 3;
+        private const char k_StartingDefaultPlayer1Char = 'X';
+        private const char k_StartingDefaultP2ayer1Char = 'O';
+        private const char k_StartingDefaultEmptySlotChar = ' ';
+        private const int k_MinimumGameBoardDimension = 2;
+        private const int k_MaximumGameBoardDimension = 100; //not sure about this
+
+
+        private static int s_DefaultBoardDimension = k_StartingDefaultBoardDimension;
+        private static char s_DefaultPlayer1Char = k_StartingDefaultPlayer1Char;
+        private static char s_DefaultPlayer2Char = k_StartingDefaultP2ayer1Char;
         private static eGameMode s_DefaultGameMode = eGameMode.PvP;
         private static eTurns s_DefaultFirstTurn = eTurns.Player1;
-        private static char s_DefaultEmptySlotChar = ' ';
+        private static char s_DefaultEmptySlotChar = k_StartingDefaultEmptySlotChar;
+
 
 
         //members:
         private char m_Player1Char, m_Player2Char, m_EmptySlotChar;
         private char[,] m_GameBoard;
-        private int m_BoardDimension, m_Player1Score, m_Player2Score, m_FilledSlotsCounter;
+        private int m_BoardDimension, m_Player1Score, m_Player2Score, m_movesMadeCounter;
         private eGameMode m_GameMode;
         private eTurns m_CurrentTurn;
         private eGameStatus m_GameStatus;
+
 
 
 
@@ -66,19 +86,20 @@ namespace ReverseTicTacToeLogic
         public ReverseTicTacToe(int i_BoardDimension, eGameMode i_GameMode)
         {
             //Ofir - since we didnt learn exceptions yet, how should be handle out of range board size in constructor?
-            m_BoardDimension = IsInRange(i_BoardDimension, s_GameBoardMaximumDimension, s_GameBoardMinimumDimension)
-                                   ? i_BoardDimension : s_DefaultBoardDimension;
+            m_BoardDimension = IsInRange(i_BoardDimension, k_MinimumGameBoardDimension, k_MaximumGameBoardDimension)
+                                   ? i_BoardDimension
+                                   : s_DefaultBoardDimension;
             m_GameMode = i_GameMode;
             m_Player1Char = s_DefaultPlayer1Char;
             m_Player2Char = s_DefaultPlayer2Char;
             m_CurrentTurn = s_DefaultFirstTurn;
             m_EmptySlotChar = s_DefaultEmptySlotChar;
             m_GameBoard = new char[m_BoardDimension, m_BoardDimension];
-            ClearBoard();
+            clearBoard();
             m_Player1Score = 0;
             m_Player2Score = 0;
             m_GameStatus = eGameStatus.ClearBoard;
-            m_FilledSlotsCounter = 0;
+            m_movesMadeCounter = 0;
 
         }
 
@@ -90,12 +111,14 @@ namespace ReverseTicTacToeLogic
             }
             set
             {
-                if (m_GameStatus == eGameStatus.ClearBoard && IsInRange(value, s_GameBoardMinimumDimension,
-                       s_GameBoardMaximumDimension))
+                if (m_GameStatus == eGameStatus.ClearBoard && IsInRange(
+                       value,
+                       k_MinimumGameBoardDimension,
+                       k_MaximumGameBoardDimension))
                 {
                     m_BoardDimension = value;
                     m_GameBoard = new char[m_BoardDimension, m_BoardDimension];
-                    ClearBoard();
+                    clearBoard();
                 }
 
             }
@@ -110,7 +133,6 @@ namespace ReverseTicTacToeLogic
         {
             return (IsInRange(i_Row, 1, m_BoardDimension) && IsInRange(i_Col, 1, m_BoardDimension));
         }
-
 
 
         public bool AttemptMove(int i_Row, int i_Col, out eLastMoveStatus o_MoveStatus)
@@ -137,6 +159,10 @@ namespace ReverseTicTacToeLogic
                 o_MoveStatus = eLastMoveStatus.Good;
                 makeMove(i_Row, i_Col);
                 moveMade = v_MoveMadeSuccessfully;
+                if(m_GameMode == eGameMode.PvC && !IsGameOver())
+                {
+                    makeComputerMove();
+                }
             }
 
             return moveMade;
@@ -146,7 +172,8 @@ namespace ReverseTicTacToeLogic
         private void makeMove(int i_Row, int i_Col)
         {
             m_GameBoard[i_Row - 1, i_Col - 1] = GetCurrentPlayersChar();
-            if (isSlotPartOfFullSequence(i_Row, i_Col))
+            m_movesMadeCounter++;
+            if (isSlotPartOfFullSequence(i_Row, i_Col)) // maybe should  have a "switch" statement here?
             {
                 if ((m_CurrentTurn == eTurns.Player1))
                 {
@@ -159,18 +186,71 @@ namespace ReverseTicTacToeLogic
                     m_Player1Score++;
                 }
             }
-            else
+
+            if (isBoardFull())
             {
-                switchTurns();
+                m_GameStatus = eGameStatus.TieGame;
             }
+
+            switchTurns();
+
         }
+
+
+        public void makeComputerMove()
+        {
+            Random randomSlotGenerator = new Random();
+            //We choose a random slot from the empty ones. for example : id there are currently 20 empty slot,
+            //we choose a number between 1 and 20
+            Console.WriteLine(("Number of empty slots:  " + ((m_BoardDimension * m_BoardDimension) - m_movesMadeCounter)));
+            int chosenEmptySlotNumber = randomSlotGenerator.Next(1, (m_BoardDimension*m_BoardDimension) - m_movesMadeCounter);
+            int i = 0, j = 0;
+            int chosenRow = 0, chosenCol = 0;
+            int emptySlotCounter = 0;
+            bool found = false;
+
+            Console.WriteLine(("Empty Slot Number Choice  " + chosenEmptySlotNumber));
+
+            while (i < m_BoardDimension && !found)
+            {
+                j = 0;
+                while(j < m_BoardDimension && !found)
+                {
+                    if (m_GameBoard[i, j] == m_EmptySlotChar)
+                    {
+                        emptySlotCounter++;
+                        if (emptySlotCounter == chosenEmptySlotNumber)
+                        {
+                            found = true;
+                            chosenRow = i + 1;
+                            chosenCol = j + 1;
+                        }
+                    }
+
+                    j++;
+                }
+
+                i++;
+            }
+
+
+
+            Console.WriteLine("Computer choice : " + chosenRow + ", " + chosenCol);
+            makeMove(chosenRow, chosenCol);
+        }
+
+
+
 
         public char GetCurrentPlayersChar()
         {
             return (m_CurrentTurn == eTurns.Player1) ? m_Player1Char : m_Player2Char;
         }
 
-
+        public bool isBoardFull()
+        {
+            return m_movesMadeCounter == m_BoardDimension * m_BoardDimension;
+        }
 
         //OFIR - we could make this a bit more efficient by after each direction checking if we've hit a sequence, but that would make the
         //code much uglier, what do you think?
@@ -178,14 +258,14 @@ namespace ReverseTicTacToeLogic
         {
             const bool v_SequenceFound = true;
             bool isPartOfFullSequence = !v_SequenceFound;
-            int verticalSequence = 1 + SequenceSizeFromSlotToDirection(i_Row, i_Col, eBoardScanningDirections.Up) +
-                                     SequenceSizeFromSlotToDirection(i_Row, i_Col, eBoardScanningDirections.Down);
-            int horizontalSequence = 1 + SequenceSizeFromSlotToDirection(i_Row, i_Col, eBoardScanningDirections.Right) +
-                                     SequenceSizeFromSlotToDirection(i_Row, i_Col, eBoardScanningDirections.Left);
-            int declinedDiagonalSequence = 1 + SequenceSizeFromSlotToDirection(i_Row, i_Col, eBoardScanningDirections.TopLeft) +
-                                     SequenceSizeFromSlotToDirection(i_Row, i_Col, eBoardScanningDirections.BottomRight);
-            int inclinedDiagonalSequence = 1 + SequenceSizeFromSlotToDirection(i_Row, i_Col, eBoardScanningDirections.BottomLeft) +
-                                     SequenceSizeFromSlotToDirection(i_Row, i_Col, eBoardScanningDirections.TopRight);
+            int verticalSequence = 1 + SequenceSizeFromSlotToDirection(i_Row, i_Col, eBoardScanningDirections.Up)
+                                       + SequenceSizeFromSlotToDirection(i_Row, i_Col, eBoardScanningDirections.Down);
+            int horizontalSequence = 1 + SequenceSizeFromSlotToDirection(i_Row, i_Col, eBoardScanningDirections.Right)
+                                       + SequenceSizeFromSlotToDirection(i_Row, i_Col, eBoardScanningDirections.Left);
+            int declinedDiagonalSequence = 1 + SequenceSizeFromSlotToDirection(i_Row, i_Col, eBoardScanningDirections.TopLeft)
+                                       + SequenceSizeFromSlotToDirection(i_Row, i_Col, eBoardScanningDirections.BottomRight);
+            int inclinedDiagonalSequence = 1 + SequenceSizeFromSlotToDirection(i_Row, i_Col, eBoardScanningDirections.BottomLeft)
+                                       + SequenceSizeFromSlotToDirection(i_Row, i_Col, eBoardScanningDirections.TopRight);
 
             if (verticalSequence == m_BoardDimension || horizontalSequence == m_BoardDimension
                                                     || declinedDiagonalSequence == m_BoardDimension
@@ -225,7 +305,10 @@ namespace ReverseTicTacToeLogic
         }
 
         //NOTE - This function does NOT check for out of bounds when advancing the indexes.
-        private void advanceToNextSlotInGivenDirection(ref int io_Row, ref int io_Col, eBoardScanningDirections i_Direction)
+        private void advanceToNextSlotInGivenDirection(
+            ref int io_Row,
+            ref int io_Col,
+            eBoardScanningDirections i_Direction)
         {
             switch (i_Direction)
             {
@@ -269,7 +352,7 @@ namespace ReverseTicTacToeLogic
         public bool IsGameOver()
         {
             return (m_GameStatus == eGameStatus.Player1Won || m_GameStatus == eGameStatus.Player2Won
-                                                          || m_GameStatus == eGameStatus.TieGame);
+                                                           || m_GameStatus == eGameStatus.TieGame);
         }
 
         public bool IsSlotFree(int i_Row, int i_Col)
@@ -300,10 +383,11 @@ namespace ReverseTicTacToeLogic
                 o_Char = m_GameBoard[i_Row - 1, i_Col - 1];
                 isSuccessful = v_Successful;
             }
+
             return isSuccessful;
         }
 
-        public void ClearBoard()
+        private void clearBoard()
         {
             for (int i = 0; i < m_BoardDimension; i++)
             {
@@ -311,9 +395,100 @@ namespace ReverseTicTacToeLogic
                 {
                     m_GameBoard[i, j] = m_EmptySlotChar;
                 }
+
+                m_movesMadeCounter = 0;
             }
         }
+
+        public int Player1Score
+        {
+            get
+            {
+                return m_Player1Score;
+            }
+            set
+            {
+                if (value > 0)
+                {
+                    m_Player1Score = value;
+                }
+            }
+        }
+        public int Player2Score
+        {
+            get
+            {
+                return m_Player2Score;
+            }
+            set
+            {
+                if (value >= 0)
+                {
+                    m_Player2Score = value;
+                }
+            }
+        }
+
+        public eGameMode GameMode
+        {
+            get
+            {
+                return m_GameMode;
+            }
+            set
+            {
+                //INCOMPLETE
+            }
+        }
+
+        public eTurns CurrentTurn
+        {
+            get
+            {
+                return m_CurrentTurn;
+            }
+            set
+            {
+                m_CurrentTurn = value;
+            }
+        }
+
+        public eGameStatus GameStatus
+        {
+            get
+            {
+                return m_GameStatus;
+            }
+        }
+
+
+
+        public class Player
+        {
+            private string m_Name;
+            private int m_Score;
+
+            Player(string i_Name)
+            {
+                m_Name = new string(i_Name.ToCharArray());
+            }
+
+            public int Score
+            {
+                get
+                {
+                    return m_Score;
+                }
+                set
+                {
+                    if(value >= 0)
+                        m_Score = value;
+                }
+            }
+
+        }
+
     }
-
-
 }
+        
+    
