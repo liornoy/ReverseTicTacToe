@@ -19,7 +19,7 @@ namespace ReverseTicTacToeLogic
             TieGame,
         }
 
-        public enum eLastMoveStatus
+        public enum eLastActionStatus
         {
             Good,
             FailedSlotTaken,
@@ -73,11 +73,11 @@ namespace ReverseTicTacToeLogic
         //members:
         private char m_Player1Char, m_Player2Char, m_EmptySlotChar;
         private char[,] m_GameBoard;
-        private int m_BoardDimension, m_Player1Score, m_Player2Score, m_movesMadeCounter;
+        private int m_BoardDimension, m_movesMadeCounter;
         private eGameMode m_GameMode;
         private eTurns m_CurrentTurn;
         private eGameStatus m_GameStatus;
-
+        private Player m_Player1, m_Player2;
 
 
 
@@ -96,8 +96,8 @@ namespace ReverseTicTacToeLogic
             m_EmptySlotChar = s_DefaultEmptySlotChar;
             m_GameBoard = new char[m_BoardDimension, m_BoardDimension];
             clearBoard();
-            m_Player1Score = 0;
-            m_Player2Score = 0;
+            m_Player1 = new Player("Player1");
+            m_Player2 = m_GameMode == eGameMode.PvP ? new Player("Player2") : new Player("Computer");
             m_GameStatus = eGameStatus.ClearBoard;
             m_movesMadeCounter = 0;
 
@@ -135,28 +135,28 @@ namespace ReverseTicTacToeLogic
         }
 
 
-        public bool AttemptMove(int i_Row, int i_Col, out eLastMoveStatus o_MoveStatus)
+        public bool AttemptMove(int i_Row, int i_Col, out eLastActionStatus o_MoveStatus)
         {
-            o_MoveStatus = eLastMoveStatus.Good;
+            o_MoveStatus = eLastActionStatus.Good;
             char charToInsert = GetCurrentPlayersChar();
             const bool v_MoveMadeSuccessfully = true;
             bool moveMade = !v_MoveMadeSuccessfully;
 
             if (!IsSlotIndexWithinBounds(i_Row, i_Col))
             {
-                o_MoveStatus = eLastMoveStatus.FailedOutOfBounds;
+                o_MoveStatus = eLastActionStatus.FailedOutOfBounds;
             }
             else if (IsGameOver())
             {
-                o_MoveStatus = eLastMoveStatus.FailedGameOver;
+                o_MoveStatus = eLastActionStatus.FailedGameOver;
             }
             else if (!IsSlotFree(i_Row, i_Col))
             {
-                o_MoveStatus = eLastMoveStatus.FailedSlotTaken;
+                o_MoveStatus = eLastActionStatus.FailedSlotTaken;
             }
             else
             {
-                o_MoveStatus = eLastMoveStatus.Good;
+                o_MoveStatus = eLastActionStatus.Good;
                 makeMove(i_Row, i_Col);
                 moveMade = v_MoveMadeSuccessfully;
                 if(m_GameMode == eGameMode.PvC && !IsGameOver())
@@ -178,16 +178,16 @@ namespace ReverseTicTacToeLogic
                 if ((m_CurrentTurn == eTurns.Player1))
                 {
                     m_GameStatus = eGameStatus.Player2Won;
-                    m_Player2Score++;
+                    m_Player2.Score++;
                 }
                 else
                 {
                     m_GameStatus = eGameStatus.Player1Won;
-                    m_Player1Score++;
+                    m_Player1.Score++;
                 }
             }
 
-            if (isBoardFull())
+            else if (isBoardFull())
             {
                 m_GameStatus = eGameStatus.TieGame;
             }
@@ -197,19 +197,19 @@ namespace ReverseTicTacToeLogic
         }
 
 
-        public void makeComputerMove()
+        private void makeComputerMove()
         {
             Random randomSlotGenerator = new Random();
             //We choose a random slot from the empty ones. for example : id there are currently 20 empty slot,
             //we choose a number between 1 and 20
-            Console.WriteLine(("Number of empty slots:  " + ((m_BoardDimension * m_BoardDimension) - m_movesMadeCounter)));
+            //Console.WriteLine(("Number of empty slots:  " + ((m_BoardDimension * m_BoardDimension) - m_movesMadeCounter)));
             int chosenEmptySlotNumber = randomSlotGenerator.Next(1, (m_BoardDimension*m_BoardDimension) - m_movesMadeCounter);
             int i = 0, j = 0;
             int chosenRow = 0, chosenCol = 0;
             int emptySlotCounter = 0;
             bool found = false;
 
-            Console.WriteLine(("Empty Slot Number Choice  " + chosenEmptySlotNumber));
+            //Console.WriteLine(("Empty Slot Number Choice  " + chosenEmptySlotNumber));
 
             while (i < m_BoardDimension && !found)
             {
@@ -233,12 +233,39 @@ namespace ReverseTicTacToeLogic
                 i++;
             }
 
-
-
-            Console.WriteLine("Computer choice : " + chosenRow + ", " + chosenCol);
+            //Console.WriteLine("Computer choice : " + chosenRow + ", " + chosenCol);
             makeMove(chosenRow, chosenCol);
         }
 
+
+        public bool Forfeit(out eLastActionStatus o_ActionStatus)
+        {
+            const bool v_ForfeitSuccessful = true;
+            bool isForfeitSuccessful = !v_ForfeitSuccessful;
+            if (IsGameOver())
+            {
+                o_ActionStatus = eLastActionStatus.FailedGameOver;
+            }
+            else
+            {
+                switch(m_CurrentTurn)
+                {
+                    case eTurns.Player1:
+                        m_Player2.Score++;
+                        m_GameStatus = eGameStatus.Player2Won;
+                        break;
+                    case eTurns.Player2:
+                        m_Player1.Score++;
+                        m_GameStatus = eGameStatus.Player1Won;
+                        break;
+                }
+
+                o_ActionStatus = eLastActionStatus.Good;
+                isForfeitSuccessful = v_ForfeitSuccessful;
+            }
+
+            return isForfeitSuccessful;
+        }
 
 
 
@@ -404,13 +431,13 @@ namespace ReverseTicTacToeLogic
         {
             get
             {
-                return m_Player1Score;
+                return m_Player1.Score;
             }
             set
             {
                 if (value > 0)
                 {
-                    m_Player1Score = value;
+                    m_Player1.Score = value;
                 }
             }
         }
@@ -418,13 +445,13 @@ namespace ReverseTicTacToeLogic
         {
             get
             {
-                return m_Player2Score;
+                return m_Player2.Score;
             }
             set
             {
                 if (value >= 0)
                 {
-                    m_Player2Score = value;
+                    m_Player2.Score = value;
                 }
             }
         }
@@ -468,9 +495,10 @@ namespace ReverseTicTacToeLogic
             private string m_Name;
             private int m_Score;
 
-            Player(string i_Name)
+            public Player(string i_Name)
             {
                 m_Name = new string(i_Name.ToCharArray());
+                m_Score = 0;
             }
 
             public int Score
