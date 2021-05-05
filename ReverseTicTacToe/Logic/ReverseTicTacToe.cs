@@ -1,18 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace ReverseTicTacToeLogic
+
+namespace ReverseTicTacToe.Logic
 {
     class ReverseTicTacToe
     {
         public enum eGameStatus
         {
-            ClearBoard,
             Ongoing,
             Player1Won,
             Player2Won,
@@ -30,8 +24,8 @@ namespace ReverseTicTacToeLogic
 
         public enum eGameMode
         {
-            PvP,
-            PvC
+            PvP = 1,
+            PvC = 2
         }
 
         public enum eTurns
@@ -55,7 +49,7 @@ namespace ReverseTicTacToeLogic
         private const char k_AccessToSlotFailedChar = '0';
         private const int k_StartingDefaultBoardDimension = 3;
         private const char k_StartingDefaultPlayer1Char = 'X';
-        private const char k_StartingDefaultP2ayer1Char = 'O';
+        private const char k_StartingDefaultPlayer2Char = 'O';
         private const char k_StartingDefaultEmptySlotChar = ' ';
         private const int k_MinimumGameBoardDimension = 2;
         private const int k_MaximumGameBoardDimension = 100; //not sure about this
@@ -63,7 +57,7 @@ namespace ReverseTicTacToeLogic
 
         private static int s_DefaultBoardDimension = k_StartingDefaultBoardDimension;
         private static char s_DefaultPlayer1Char = k_StartingDefaultPlayer1Char;
-        private static char s_DefaultPlayer2Char = k_StartingDefaultP2ayer1Char;
+        private static char s_DefaultPlayer2Char = k_StartingDefaultPlayer2Char;
         private static eGameMode s_DefaultGameMode = eGameMode.PvP;
         private static eTurns s_DefaultFirstTurn = eTurns.Player1;
         private static char s_DefaultEmptySlotChar = k_StartingDefaultEmptySlotChar;
@@ -98,7 +92,7 @@ namespace ReverseTicTacToeLogic
             clearBoard();
             m_Player1 = new Player("Player1");
             m_Player2 = m_GameMode == eGameMode.PvP ? new Player("Player2") : new Player("Computer");
-            m_GameStatus = eGameStatus.ClearBoard;
+            m_GameStatus = eGameStatus.Ongoing;
             m_movesMadeCounter = 0;
 
         }
@@ -111,10 +105,7 @@ namespace ReverseTicTacToeLogic
             }
             set
             {
-                if (m_GameStatus == eGameStatus.ClearBoard && IsInRange(
-                       value,
-                       k_MinimumGameBoardDimension,
-                       k_MaximumGameBoardDimension))
+                if (IsBoardClear() && IsInRange(value, k_MinimumGameBoardDimension, k_MaximumGameBoardDimension))
                 {
                     m_BoardDimension = value;
                     m_GameBoard = new char[m_BoardDimension, m_BoardDimension];
@@ -122,6 +113,11 @@ namespace ReverseTicTacToeLogic
                 }
 
             }
+        }
+
+        public bool IsBoardClear()
+        {
+            return m_movesMadeCounter == 0;
         }
 
         public static bool IsInRange(int i_Num, int i_Min, int i_Max)
@@ -140,7 +136,7 @@ namespace ReverseTicTacToeLogic
             o_MoveStatus = eLastActionStatus.Good;
             char charToInsert = GetCurrentPlayerChar();
             const bool v_MoveMadeSuccessfully = true;
-            bool isMoveMadeSuccessfuly = !v_MoveMadeSuccessfully;
+            bool isMoveMadeSuccessfully = !v_MoveMadeSuccessfully;
 
             if (!IsSlotIndexWithinBounds(i_Row, i_Col))
             {
@@ -158,14 +154,14 @@ namespace ReverseTicTacToeLogic
             {
                 o_MoveStatus = eLastActionStatus.Good;
                 makeMove(i_Row, i_Col);
-                isMoveMadeSuccessfuly = v_MoveMadeSuccessfully;
+                isMoveMadeSuccessfully = v_MoveMadeSuccessfully;
                 if (m_GameMode == eGameMode.PvC && !IsGameOver())
                 {
                     makeComputerMove();
                 }
             }
 
-            return isMoveMadeSuccessfuly;
+            return isMoveMadeSuccessfully;
         }
 
         //This functions assumes the move is legal and can be done.
@@ -237,6 +233,25 @@ namespace ReverseTicTacToeLogic
             makeMove(chosenRow, chosenCol);
         }
 
+        public void RestartGame()
+        {
+            clearBoard();
+            m_CurrentTurn = s_DefaultFirstTurn;
+            m_GameStatus = eGameStatus.Ongoing;
+        }
+
+        public void ClearScores()
+        {
+            m_Player1.Score = 0;
+            m_Player2.Score = 0;
+        }
+
+        public void RestartGameAndClearScores()
+        {
+            RestartGame();
+            ClearScores();
+        }
+
 
         public bool Forfeit(out eLastActionStatus o_ActionStatus)
         {
@@ -272,13 +287,13 @@ namespace ReverseTicTacToeLogic
         public char GetCurrentPlayerChar()
         {
             char currentPlayerChar = k_StartingDefaultEmptySlotChar;
-            if(m_CurrentTurn == eTurns.Player1)
+            if (m_CurrentTurn == eTurns.Player1)
             {
                 currentPlayerChar = m_Player1Char;
             }
             else
             {
-                currentPlayerChar  =  m_Player2Char;
+                currentPlayerChar = m_Player2Char;
             }
 
             return currentPlayerChar;
