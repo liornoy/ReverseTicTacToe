@@ -138,7 +138,7 @@ namespace ReverseTicTacToeLogic
         public bool AttemptMove(int i_Row, int i_Col, out eLastActionStatus o_MoveStatus)
         {
             o_MoveStatus = eLastActionStatus.Good;
-            char charToInsert = GetCurrentPlayersChar();
+            char charToInsert = GetCurrentPlayerChar();
             const bool v_MoveMadeSuccessfully = true;
             bool isMoveMadeSuccessfuly = !v_MoveMadeSuccessfully;
 
@@ -171,7 +171,7 @@ namespace ReverseTicTacToeLogic
         //This functions assumes the move is legal and can be done.
         private void makeMove(int i_Row, int i_Col)
         {
-            m_GameBoard[i_Row - 1, i_Col - 1] = GetCurrentPlayersChar();
+            m_GameBoard[i_Row - 1, i_Col - 1] = GetCurrentPlayerChar();
             m_movesMadeCounter++;
             if (isSlotPartOfFullSequence(i_Row, i_Col)) // maybe should  have a "switch" statement here?
             {
@@ -269,9 +269,19 @@ namespace ReverseTicTacToeLogic
 
 
 
-        public char GetCurrentPlayersChar()
+        public char GetCurrentPlayerChar()
         {
-            return (m_CurrentTurn == eTurns.Player1) ? m_Player1Char : m_Player2Char;
+            char currentPlayerChar = k_StartingDefaultEmptySlotChar;
+            if(m_CurrentTurn == eTurns.Player1)
+            {
+                currentPlayerChar = m_Player1Char;
+            }
+            else
+            {
+                currentPlayerChar  =  m_Player2Char;
+            }
+
+            return currentPlayerChar;
         }
 
         public bool isBoardFull()
