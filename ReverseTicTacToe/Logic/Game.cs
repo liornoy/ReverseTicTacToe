@@ -140,7 +140,7 @@ namespace ReverseTicTacToeLogic
             o_MoveStatus = eLastActionStatus.Good;
             char charToInsert = GetCurrentPlayersChar();
             const bool v_MoveMadeSuccessfully = true;
-            bool moveMade = !v_MoveMadeSuccessfully;
+            bool isMoveMadeSuccessfuly = !v_MoveMadeSuccessfully;
 
             if (!IsSlotIndexWithinBounds(i_Row, i_Col))
             {
@@ -158,14 +158,14 @@ namespace ReverseTicTacToeLogic
             {
                 o_MoveStatus = eLastActionStatus.Good;
                 makeMove(i_Row, i_Col);
-                moveMade = v_MoveMadeSuccessfully;
-                if(m_GameMode == eGameMode.PvC && !IsGameOver())
+                isMoveMadeSuccessfuly = v_MoveMadeSuccessfully;
+                if (m_GameMode == eGameMode.PvC && !IsGameOver())
                 {
                     makeComputerMove();
                 }
             }
 
-            return moveMade;
+            return isMoveMadeSuccessfuly;
         }
 
         //This functions assumes the move is legal and can be done.
@@ -203,7 +203,7 @@ namespace ReverseTicTacToeLogic
             //We choose a random slot from the empty ones. for example : id there are currently 20 empty slot,
             //we choose a number between 1 and 20
             //Console.WriteLine(("Number of empty slots:  " + ((m_BoardDimension * m_BoardDimension) - m_movesMadeCounter)));
-            int chosenEmptySlotNumber = randomSlotGenerator.Next(1, (m_BoardDimension*m_BoardDimension) - m_movesMadeCounter);
+            int chosenEmptySlotNumber = randomSlotGenerator.Next(1, (m_BoardDimension * m_BoardDimension) - m_movesMadeCounter);
             int i = 0, j = 0;
             int chosenRow = 0, chosenCol = 0;
             int emptySlotCounter = 0;
@@ -214,7 +214,7 @@ namespace ReverseTicTacToeLogic
             while (i < m_BoardDimension && !found)
             {
                 j = 0;
-                while(j < m_BoardDimension && !found)
+                while (j < m_BoardDimension && !found)
                 {
                     if (m_GameBoard[i, j] == m_EmptySlotChar)
                     {
@@ -248,7 +248,7 @@ namespace ReverseTicTacToeLogic
             }
             else
             {
-                switch(m_CurrentTurn)
+                switch (m_CurrentTurn)
                 {
                     case eTurns.Player1:
                         m_Player2.Score++;
@@ -509,7 +509,7 @@ namespace ReverseTicTacToeLogic
                 }
                 set
                 {
-                    if(value >= 0)
+                    if (value >= 0)
                         m_Score = value;
                 }
             }
@@ -518,5 +518,3 @@ namespace ReverseTicTacToeLogic
 
     }
 }
-        
-    
