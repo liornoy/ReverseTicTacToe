@@ -12,10 +12,9 @@ namespace ReverseTicTacToe
     {
         static void Main(string[] args)
         {
-           //  ConsoleUI consoleUi = ConsoleUI.Instance;
-           // consoleUi.Init();
-           // consoleUi.Run();
-           UITests.TestUI();
+            ConsoleUIManager consoleUiManager = new ConsoleUIManager();
+            consoleUiManager.Run();
+           // UITests.TestUI();
         }
     }
 }
