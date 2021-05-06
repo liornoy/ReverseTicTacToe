@@ -158,9 +158,9 @@ namespace ReverseTicTacToe.Logic
                 o_MoveStatus = eLastActionStatus.Good;
                 makeMove(i_Row, i_Col);
                 isMoveMadeSuccessfully = v_MoveMadeSuccessfully;
-                if (m_GameMode == eGameMode.PvC && !IsGameOver())
+                if(m_GameMode == eGameMode.PvC && !IsGameOver() && m_CurrentTurn == eTurns.Player2)
                 {
-                    makeComputerMove/*Experimental*/();
+                    makeComputerMoveExperimental();
                 }
             }
 
@@ -247,20 +247,31 @@ namespace ReverseTicTacToe.Logic
         /*
         * General concept:
         *
-        * "ProbeDepth" - will hold how far ahead are we in the future moves calculations (3 moves ahead, 5 moves ahead...)
+        * "ProbeDepth" - will hold how far/deep into the "future" playes we're doing the probing. for example if ProbeDepth = 3, the
+         * function will check every possible scenario within 3 moves ahead.
+         *
+         * a "Rating" of a potential play is the AI's way to compate between move. The higher the rating is, the "better" the move
+         * is. And the move with the highest rating will be chosen.
+         *
+         * The rating is calculated based on two factors:
+         * 1. how many no-loss scenarios that play leads to
+         * 2. how many win scenarios that play leads to
+         *
+         *The rating given for each factor also depends on how far are we in the probe. for example -
+         * if we've just started the probing proccess, the rating each scenario (1,2) will get will be HIGHER
+         * than if we were deeper/further in it
         *
-        * for each empty slot on the board:
-        * check if choosing that slot will cause immediate loss, if yes, return 0, if not return ProbeDepth +
-        *   ("winning" scenarioes count * ProbeDepth) +  recursion  ;
-        *
-        *
-        * return the slot with the highest count - high "no-losing" scenarioes, and it's count
+         * for each empty slot on the board, the AI will do the following:
+         * check if playing that slot will NOT lead to immediate loss(a "no-loss" scenario). if it won't, the AI will add "ProbeDepth"
+         * to it's rating. and it'll also simulate playing that slot, and then, for each remaining empty slot,
+         * it will simulate the rival's play, and check if the rival will lose playing them. for each time the rival infact
+         * loses, the AI will again increase that rate.
         *
         */
         private int chooseSlotAI(out int o_Row, out int o_Col, int i_ProbeDepth, int i_CurrentEmptySlotsToScan)
         {
-            o_Row = 0;
-            o_Col = 0;
+            o_Row = 1;
+            o_Col = 1;
             int overallRating = 0;
             if (i_CurrentEmptySlotsToScan == 0 || i_ProbeDepth == 0)
             {
@@ -274,14 +285,14 @@ namespace ReverseTicTacToe.Logic
             }
 
 
-            int currentHighestMoveRating = 0, currentRow = 0, currentCol = 0;
+            int currentHighestMoveRating = 0, currentRow = 1, currentCol = 1;
 
-            int currentBestMoveRow = 0, currentBestMoveCol = 0;
+            int currentBestMoveRow = 1, currentBestMoveCol = 1;
 
             int individualScenarioRating = 0;
 
             int currentMoveRating = 0;
-            int rowWinScan = 0, colWinScan = 0;
+            int rowWinScan = 1, colWinScan = 1;
 
             int rowTemp, colTemp;
 
@@ -289,7 +300,7 @@ namespace ReverseTicTacToe.Logic
             for(int i = 1; i <= i_CurrentEmptySlotsToScan; i++)
             {
                 getNextEmptySlotOnBoard(ref currentRow, ref currentCol);
-                m_GameBoard[currentRow, currentCol] = m_Player2Char; //filling an empty slot
+                m_GameBoard[currentRow - 1, currentCol - 1] = m_Player2Char; //filling an empty slot
 
                 if(!isSlotPartOfFullSequence(currentRow, currentCol)) //if it's not leading to immediate loss
                 {
@@ -322,7 +333,7 @@ namespace ReverseTicTacToe.Logic
                         currentBestMoveRow = currentRow;
                         currentBestMoveCol = currentCol;
                     }
-                    m_GameBoard[currentRow, currentCol] = m_EmptySlotChar; //filling an empty slot
+                    m_GameBoard[currentRow - 1, currentCol - 1] = m_EmptySlotChar; //filling an empty slot
                 }
             }
 
