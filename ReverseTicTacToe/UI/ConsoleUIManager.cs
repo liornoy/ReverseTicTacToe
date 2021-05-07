@@ -14,9 +14,9 @@ namespace ReverseTicTacToe.UI
         private const int k_InitVal = -1;
         private const int k_RowIndex = 0;
         private const int k_ColIndex = 1;
-
         private const string k_QuitSymbol = "Q";
         private string m_ErrorMessage;
+        private bool m_firstTurn;
 
         private Logic.ReverseTicTacToe m_Game;
         private void init()
@@ -26,6 +26,7 @@ namespace ReverseTicTacToe.UI
             Logic.ReverseTicTacToe.eGameMode gameMode = getGameTypeFromUser();
             m_Game = new Logic.ReverseTicTacToe(boardSize, gameMode);
             m_ErrorMessage = "";
+            m_firstTurn = true;
         }
         public void Run()
         {
@@ -38,6 +39,7 @@ namespace ReverseTicTacToe.UI
                     clearScreenAndPrintGameBoard();
                     writeErrorMsgIfAny();
                     makeTurn();
+                    m_firstTurn = false;
                 }
                 else
                 {
@@ -175,7 +177,11 @@ namespace ReverseTicTacToe.UI
             StringBuilder msg = new StringBuilder();
             string userInputStr;
             bool isValidInput;
-            msg.AppendFormat("{0} it's your turn! please enter row,col:", m_Game.CurrentTurn.ToString());
+            string pcTurnPlayedStr = "";
+           if(m_Game.GameMode == Logic.ReverseTicTacToe.eGameMode.PvC && !m_firstTurn) {
+                pcTurnPlayedStr = String.Format("Computer made his move.{0}", Environment.NewLine);
+           }
+            msg.AppendFormat("{0}{1} it's your turn! please enter row,col:", pcTurnPlayedStr, m_Game.CurrentTurn.ToString());
             do
             {
                 writeErrorMsgIfAny();
