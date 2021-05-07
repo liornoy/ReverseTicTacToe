@@ -300,16 +300,17 @@ namespace ReverseTicTacToe.Logic
             {
                 getNextEmptySlotOnBoard(ref currentRow, ref currentCol);
                 m_GameBoard[currentRow - 1, currentCol - 1] = m_Player2Char; //filling an empty slot
+                m_movesMadeCounter++;
 
                 if(!isSlotPartOfFullSequence(currentRow, currentCol)) //if it's not leading to immediate loss
                 {
                     currentMoveRating += i_ProbeDepth; // we increase it's rating
-                    for (int j = 1; j < i_CurrentEmptySlotsToScan - 1; j++) //now checking possible moves by the (human) player,
-                                                                            //in response to our move
+                    for (int j = 1; j < i_CurrentEmptySlotsToScan - 1; j++) //now checking possible moves by the (human) player,//in response to our move
                     {
                         getNextEmptySlotOnBoard(ref rowWinScan, ref colWinScan);
                         m_GameBoard[rowWinScan - 1, colWinScan - 1] = m_Player1Char;
-                        if(!isSlotPartOfFullSequence(rowWinScan, colWinScan))
+                        m_movesMadeCounter++;
+                        if (!isSlotPartOfFullSequence(rowWinScan, colWinScan))
                         {
                             currentMoveRating += i_ProbeDepth; //for each possible winning scenario - increasing that slot's rating
                             overallRating += i_ProbeDepth;
@@ -324,20 +325,25 @@ namespace ReverseTicTacToe.Logic
                             overallRating += individualScenarioRating;
                         }
                         m_GameBoard[rowWinScan - 1, colWinScan - 1] = m_EmptySlotChar;
+                        m_movesMadeCounter--;
                     }
-
-                    if(currentMoveRating >= currentHighestMoveRating)
-                    {
-                        currentHighestMoveRating = currentMoveRating;
-                        currentBestMoveRow = currentRow;
-                        currentBestMoveCol = currentCol;
-                    }
-                    m_GameBoard[currentRow - 1, currentCol - 1] = m_EmptySlotChar; //filling an empty slot
                 }
+
+                if (currentMoveRating >= currentHighestMoveRating)
+                {
+                    currentHighestMoveRating = currentMoveRating;
+                    currentBestMoveRow = currentRow;
+                    currentBestMoveCol = currentCol;
+                }
+                m_GameBoard[currentRow - 1, currentCol - 1] = m_EmptySlotChar; //filling an empty slot
+                m_movesMadeCounter--;
             }
 
+            o_Row = currentBestMoveRow;
+            o_Col = currentBestMoveCol;
 
-            if(i_ProbeDepth == k_StartingAIProbingDepthDefault)
+
+            if (i_ProbeDepth == k_StartingAIProbingDepthDefault)
             {
                 Console.WriteLine("Ai has chosen slot " + o_Row + ", " + o_Col + Environment.NewLine);
             }
@@ -353,19 +359,36 @@ namespace ReverseTicTacToe.Logic
             const bool v_EmptySlotFound = true;
             bool isEmptySlotFound = !v_EmptySlotFound;
 
+            if(io_Col != m_BoardDimension)
+            {
+                io_Col++;
+            }
+            else
+            {
+                io_Col = 1;
+                io_Row = (io_Row == m_BoardDimension) ? 1 : io_Row + 1;
+            }
+
+
             if (!IsBoardFull())
             {
                 while(slotScannedCounter <= (m_BoardDimension * m_BoardDimension) && !isEmptySlotFound)
                 {
-                    while(slotScannedCounter <= (m_BoardDimension * m_BoardDimension) && !isEmptySlotFound)
+                    while(slotScannedCounter <= (m_BoardDimension * m_BoardDimension) && !isEmptySlotFound && io_Col <= m_BoardDimension)
                     {
-                        io_Col = (io_Col == m_BoardDimension) ? 1 : io_Col + 1;
                         if(m_GameBoard[io_Row - 1, io_Col - 1] == m_EmptySlotChar)
                         {
                             isEmptySlotFound = v_EmptySlotFound;
                         }
-                        slotScannedCounter++;
+                        else
+                        {
+                            slotScannedCounter++;
+                            io_Col++;
+                        }
+                        
                     }
+
+                    io_Col = 1;
 
                     if(!isEmptySlotFound)
                     {
@@ -514,7 +537,7 @@ namespace ReverseTicTacToe.Logic
                     isInsideSequence = !v_insideSequence;
                 }
             }
-
+            
             return sequenceSize;
         }
 
