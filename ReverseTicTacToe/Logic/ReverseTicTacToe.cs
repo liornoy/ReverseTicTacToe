@@ -53,7 +53,10 @@ namespace ReverseTicTacToe.Logic
         private const char k_StartingDefaultEmptySlotChar = ' ';
         private const int k_MinimumGameBoardDimension = 2;
         private const int k_MaximumGameBoardDimension = 100; //not sure about this
-        private const int k_StartingAIProbingDepthDefault = 5;
+        private const int k_StartingAIProbingDepthDefault = 3; //NOTE! - increasing the probing depth over 3,
+                                                               //will cause a TREMENDOUS increase in the AI's running time.
+                                                               //which most PC's will NOT be able to perform within a reasonable
+                                                               //time frame, and thus is ill-advised!
 
         private static int s_DefaultBoardDimension = k_StartingDefaultBoardDimension;
         private static char s_DefaultPlayer1Char = k_StartingDefaultPlayer1Char;
@@ -320,7 +323,7 @@ namespace ReverseTicTacToe.Logic
                             currentMoveRating += individualScenarioRating;
                             overallRating += individualScenarioRating;
                         }
-                        m_GameBoard[rowWinScan - 1, colWinScan - 1] = m_EmptySlotChar;
+                        m_GameBoard[rowWinScan - 1, colWinScan - 1] = m_EmptySlotChar; //emptying back the filled slot
                         m_movesMadeCounter--;
                     }
                 }
@@ -331,8 +334,10 @@ namespace ReverseTicTacToe.Logic
                     currentBestMoveRow = currentRow;
                     currentBestMoveCol = currentCol;
                 }
-                m_GameBoard[currentRow - 1, currentCol - 1] = m_EmptySlotChar; //filling an empty slot
+                m_GameBoard[currentRow - 1, currentCol - 1] = m_EmptySlotChar; //emptying back the filled slot
                 m_movesMadeCounter--;
+
+                currentMoveRating = 0;
             }
 
             o_Row = currentBestMoveRow;
@@ -341,8 +346,8 @@ namespace ReverseTicTacToe.Logic
 
             if (i_ProbeDepth == k_StartingAIProbingDepthDefault)
             {
-                Console.WriteLine("Ai called. current empty slots to scan:  " + i_CurrentEmptySlotsToScan + Environment.NewLine);
-                Console.WriteLine("Ai has chosen slot " + o_Row + ", " + o_Col + Environment.NewLine);
+               // Console.WriteLine("Ai called. current empty slots to scan:  " + i_CurrentEmptySlotsToScan + Environment.NewLine);
+                //Console.WriteLine("Ai has chosen slot " + o_Row + ", " + o_Col + Environment.NewLine);
             }
 
             return overallRating;
@@ -352,9 +357,9 @@ namespace ReverseTicTacToe.Logic
 
         private bool getNextEmptySlotOnBoard(ref int io_Row, ref int io_Col)
         {
-            Console.WriteLine("getNextEmptySlotOnBoard called on slot " + io_Row +", " + io_Col + "\n");
-            PrintGameBoard();
-            Console.WriteLine();
+           // Console.WriteLine("getNextEmptySlotOnBoard called on slot " + io_Row +", " + io_Col + "\n");
+            //PrintGameBoard();
+            //onsole.WriteLine();
 
             int slotScannedCounter = 0;
             const bool v_EmptySlotFound = true;
@@ -397,7 +402,7 @@ namespace ReverseTicTacToe.Logic
                 }
             }
 
-            Console.WriteLine(("The next empty slot is " + io_Row + ", " + io_Col + " \n"));
+           // Console.WriteLine(("The next empty slot is " + io_Row + ", " + io_Col + " \n"));
 
 
             return isEmptySlotFound;
