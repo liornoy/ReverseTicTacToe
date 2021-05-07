@@ -53,7 +53,7 @@ namespace ReverseTicTacToe.Logic
         private const char k_StartingDefaultEmptySlotChar = ' ';
         private const int k_MinimumGameBoardDimension = 2;
         private const int k_MaximumGameBoardDimension = 100; //not sure about this
-
+        private const int k_StartingAIProbingDepthDefault = 5;
 
         private static int s_DefaultBoardDimension = k_StartingDefaultBoardDimension;
         private static char s_DefaultPlayer1Char = k_StartingDefaultPlayer1Char;
@@ -72,6 +72,7 @@ namespace ReverseTicTacToe.Logic
         private eTurns m_CurrentTurn;
         private eGameStatus m_GameStatus;
         private Player m_Player1, m_Player2;
+        private int m_AIProbingDepth;
 
 
 
@@ -94,6 +95,7 @@ namespace ReverseTicTacToe.Logic
             m_Player2 = m_GameMode == eGameMode.PvP ? new Player("Player2") : new Player("Computer");
             m_GameStatus = eGameStatus.Ongoing;
             m_movesMadeCounter = 0;
+            m_AIProbingDepth = k_StartingAIProbingDepthDefault;
 
         }
 
@@ -111,6 +113,7 @@ namespace ReverseTicTacToe.Logic
                     m_GameBoard = new char[m_BoardDimension, m_BoardDimension];
                     clearBoard();
                 }
+
 
             }
         }
@@ -155,9 +158,9 @@ namespace ReverseTicTacToe.Logic
                 o_MoveStatus = eLastActionStatus.Good;
                 makeMove(i_Row, i_Col);
                 isMoveMadeSuccessfully = v_MoveMadeSuccessfully;
-                if (m_GameMode == eGameMode.PvC && !IsGameOver())
+                if(m_GameMode == eGameMode.PvC && !IsGameOver() && m_CurrentTurn == eTurns.Player2)
                 {
-                    makeComputerMove();
+                    makeComputerMoveExperimental();
                 }
             }
 
@@ -183,7 +186,7 @@ namespace ReverseTicTacToe.Logic
                 }
             }
 
-            else if (isBoardFull())
+            else if (IsBoardFull())
             {
                 m_GameStatus = eGameStatus.TieGame;
             }
@@ -232,6 +235,156 @@ namespace ReverseTicTacToe.Logic
             //Console.WriteLine("Computer choice : " + chosenRow + ", " + chosenCol);
             makeMove(chosenRow, chosenCol);
         }
+
+
+        private void makeComputerMoveExperimental()
+        {
+            int chosenRow, chosenCol;
+            chooseSlotAI(out chosenRow, out chosenCol, m_AIProbingDepth, m_BoardDimension * m_BoardDimension - m_movesMadeCounter);
+            makeMove(chosenRow, chosenCol);
+        }
+
+        /*
+        * General concept:
+        *
+        * "ProbeDepth" - will hold how far/deep into the "future" playes we're doing the probing. for example if ProbeDepth = 3, the
+         * function will check every possible scenario within 3 moves ahead.
+         *
+         * a "Rating" of a potential play is the AI's way to compate between move. The higher the rating is, the "better" the move
+         * is. And the move with the highest rating will be chosen.
+         *
+         * The rating is calculated based on two factors:
+         * 1. how many no-loss scenarios that play leads to
+         * 2. how many win scenarios that play leads to
+         *
+         *The rating given for each factor also depends on how far are we in the probe. for example -
+         * if we've just started the probing proccess, the rating each scenario (1,2) will get will be HIGHER
+         * than if we were deeper/further in it
+        *
+         * for each empty slot on the board, the AI will do the following:
+         * check if playing that slot will NOT lead to immediate loss(a "no-loss" scenario). if it won't, the AI will add "ProbeDepth"
+         * to it's rating. and it'll also simulate playing that slot, and then, for each remaining empty slot,
+         * it will simulate the rival's play, and check if the rival will lose playing them. for each time the rival infact
+         * loses, the AI will again increase that rate.
+        *
+        */
+        private int chooseSlotAI(out int o_Row, out int o_Col, int i_ProbeDepth, int i_CurrentEmptySlotsToScan)
+        {
+            o_Row = 1;
+            o_Col = 1;
+            int overallRating = 0;
+            if (i_CurrentEmptySlotsToScan == 0 || i_ProbeDepth == 0)
+            {
+                return overallRating;
+            }
+
+            if(i_CurrentEmptySlotsToScan == 1)
+            {
+                getNextEmptySlotOnBoard(ref o_Row, ref o_Col);
+                return overallRating;
+            }
+
+
+            int currentHighestMoveRating = 0, currentRow = 1, currentCol = 1;
+
+            int currentBestMoveRow = 1, currentBestMoveCol = 1;
+
+            int individualScenarioRating = 0;
+
+            int currentMoveRating = 0;
+            int rowWinScan = 1, colWinScan = 1;
+
+            int rowTemp, colTemp;
+
+
+            for(int i = 1; i <= i_CurrentEmptySlotsToScan; i++)
+            {
+                getNextEmptySlotOnBoard(ref currentRow, ref currentCol);
+                m_GameBoard[currentRow - 1, currentCol - 1] = m_Player2Char; //filling an empty slot
+
+                if(!isSlotPartOfFullSequence(currentRow, currentCol)) //if it's not leading to immediate loss
+                {
+                    currentMoveRating += i_ProbeDepth; // we increase it's rating
+                    for (int j = 1; j < i_CurrentEmptySlotsToScan - 1; j++) //now checking possible moves by the (human) player,
+                                                                            //in response to our move
+                    {
+                        getNextEmptySlotOnBoard(ref rowWinScan, ref colWinScan);
+                        m_GameBoard[rowWinScan - 1, colWinScan - 1] = m_Player1Char;
+                        if(!isSlotPartOfFullSequence(rowWinScan, colWinScan))
+                        {
+                            currentMoveRating += i_ProbeDepth; //for each possible winning scenario - increasing that slot's rating
+                            overallRating += i_ProbeDepth;
+                        }
+                        else
+                        {
+                            //now, for each computer possible move, that doesn't lead to immediate loss, we simulate a move for the (human)
+                            //player, and if that doesn't lead to our immediate win - we start probing recursivly.
+                            individualScenarioRating = chooseSlotAI(out rowTemp, out colTemp, i_ProbeDepth - 1,
+                                i_CurrentEmptySlotsToScan - 1);
+                            currentMoveRating += individualScenarioRating;
+                            overallRating += individualScenarioRating;
+                        }
+                        m_GameBoard[rowWinScan - 1, colWinScan - 1] = m_EmptySlotChar;
+                    }
+
+                    if(currentMoveRating >= currentHighestMoveRating)
+                    {
+                        currentHighestMoveRating = currentMoveRating;
+                        currentBestMoveRow = currentRow;
+                        currentBestMoveCol = currentCol;
+                    }
+                    m_GameBoard[currentRow - 1, currentCol - 1] = m_EmptySlotChar; //filling an empty slot
+                }
+            }
+
+            return overallRating;
+
+        }
+
+
+        private bool getNextEmptySlotOnBoard(ref int io_Row, ref int io_Col)
+        {
+            int slotScannedCounter = 0;
+            const bool v_EmptySlotFound = true;
+            bool isEmptySlotFound = !v_EmptySlotFound;
+
+            if (!IsBoardFull())
+            {
+                while(slotScannedCounter <= m_BoardDimension * m_BoardDimension && !isEmptySlotFound)
+                {
+                    io_Row = (io_Row == m_BoardDimension) ? 1 : io_Row + 1;
+                    while(slotScannedCounter <= m_BoardDimension * m_BoardDimension && !isEmptySlotFound)
+                    {
+                        io_Col = (io_Col == m_BoardDimension) ? 1 : io_Col + 1;
+                        if(m_GameBoard[io_Row - 1, io_Col - 1] == m_EmptySlotChar)
+                        {
+                            isEmptySlotFound = v_EmptySlotFound;
+                        }
+
+                        slotScannedCounter++;
+                    }
+                }
+            }
+
+            return isEmptySlotFound;
+        }
+
+
+        private char[,] cloneGameBoard()
+        {
+            char[,] gameBoardCopy = new char[m_BoardDimension, m_BoardDimension];
+            int chosenRow, chosenCol;
+            for (int i = 0; i < m_BoardDimension; i++)
+            {
+                for (int j = 0; j < m_BoardDimension; j++)
+                {
+                    gameBoardCopy[i, j] = m_GameBoard[i, j];
+                }
+            }
+
+            return gameBoardCopy;
+        }
+
 
         public void RestartGame()
         {
@@ -299,7 +452,7 @@ namespace ReverseTicTacToe.Logic
             return currentPlayerChar;
         }
 
-        public bool isBoardFull()
+        public bool IsBoardFull()
         {
             return m_movesMadeCounter == m_BoardDimension * m_BoardDimension;
         }
@@ -447,9 +600,9 @@ namespace ReverseTicTacToe.Logic
                 {
                     m_GameBoard[i, j] = m_EmptySlotChar;
                 }
-
-                m_movesMadeCounter = 0;
             }
+
+            m_movesMadeCounter = 0;
         }
 
         public int Player1Score
