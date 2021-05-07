@@ -87,7 +87,10 @@ namespace ReverseTicTacToe.UI
 
         private void clearScreenAndPrintGameBoard()
         {
-            Ex02.ConsoleUtils.Screen.Clear();
+            //Ex02.ConsoleUtils.Screen.Clear(); REMOVE ONLY FOR DEBBUG PURPOSE
+
+            Console.WriteLine();
+
             StringBuilder boardOutPut = new StringBuilder();
             int boardLength = m_Game.BoardSize;
             for (int i = 0; i <= boardLength; i++)
