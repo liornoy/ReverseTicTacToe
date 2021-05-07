@@ -1,5 +1,5 @@
 ﻿using System;
-
+using System.Text;
 
 namespace ReverseTicTacToe.Logic
 {
@@ -192,14 +192,13 @@ namespace ReverseTicTacToe.Logic
             }
 
             switchTurns();
-
         }
 
 
         private void makeComputerMove()
         {
             Random randomSlotGenerator = new Random();
-            //We choose a random slot from the empty ones. for example : id there are currently 20 empty slot,
+            //We choose a random slot from the empty ones. for example : if there are currently 20 empty slots,
             //we choose a number between 1 and 20
             //Console.WriteLine(("Number of empty slots:  " + ((m_BoardDimension * m_BoardDimension) - m_movesMadeCounter)));
             int chosenEmptySlotNumber = randomSlotGenerator.Next(1, (m_BoardDimension * m_BoardDimension) - m_movesMadeCounter);
@@ -257,7 +256,7 @@ namespace ReverseTicTacToe.Logic
          * 1. how many no-loss scenarios that play leads to
          * 2. how many win scenarios that play leads to
          *
-         *The rating given for each factor also depends on how far are we in the probe. for example -
+         * The rating given for each factor also depends on how far are we in the probe. for example -
          * if we've just started the probing proccess, the rating each scenario (1,2) will get will be HIGHER
          * than if we were deeper/further in it
         *
@@ -337,6 +336,12 @@ namespace ReverseTicTacToe.Logic
                 }
             }
 
+
+            if(i_ProbeDepth == k_StartingAIProbingDepthDefault)
+            {
+                Console.WriteLine("Ai has chosen slot " + o_Row + ", " + o_Col + Environment.NewLine);
+            }
+
             return overallRating;
 
         }
@@ -350,21 +355,26 @@ namespace ReverseTicTacToe.Logic
 
             if (!IsBoardFull())
             {
-                while(slotScannedCounter <= m_BoardDimension * m_BoardDimension && !isEmptySlotFound)
+                while(slotScannedCounter <= (m_BoardDimension * m_BoardDimension) && !isEmptySlotFound)
                 {
-                    io_Row = (io_Row == m_BoardDimension) ? 1 : io_Row + 1;
-                    while(slotScannedCounter <= m_BoardDimension * m_BoardDimension && !isEmptySlotFound)
+                    while(slotScannedCounter <= (m_BoardDimension * m_BoardDimension) && !isEmptySlotFound)
                     {
                         io_Col = (io_Col == m_BoardDimension) ? 1 : io_Col + 1;
                         if(m_GameBoard[io_Row - 1, io_Col - 1] == m_EmptySlotChar)
                         {
                             isEmptySlotFound = v_EmptySlotFound;
                         }
-
                         slotScannedCounter++;
                     }
+
+                    if(!isEmptySlotFound)
+                    {
+                        io_Row = (io_Row == m_BoardDimension) ? 1 : io_Row + 1;
+                    }
+                    
                 }
             }
+
 
             return isEmptySlotFound;
         }
@@ -373,7 +383,6 @@ namespace ReverseTicTacToe.Logic
         private char[,] cloneGameBoard()
         {
             char[,] gameBoardCopy = new char[m_BoardDimension, m_BoardDimension];
-            int chosenRow, chosenCol;
             for (int i = 0; i < m_BoardDimension; i++)
             {
                 for (int j = 0; j < m_BoardDimension; j++)
@@ -666,6 +675,53 @@ namespace ReverseTicTacToe.Logic
             }
         }
 
+        
+
+        //DEBUG USE - DELETE WHEN NO LONGER NEEDED
+        private void PrintGameBoard()
+        {
+            Console.WriteLine("");
+            StringBuilder boardOutPut = new StringBuilder();
+            int boardLength = m_BoardDimension;
+            for (int i = 0; i <= boardLength; i++)
+            {
+                for (int j = 0; j <= boardLength; j++)
+                {
+                    if (i == 0 && j == 0)
+                    {
+                        boardOutPut.Append("  ");
+                    }
+                    else if (i == 0)
+                    {
+                        boardOutPut.AppendFormat("{0}   ", j);
+                    }
+                    else if (j == 0)
+                    {
+                        boardOutPut.Append(i);
+                    }
+                    else
+                    {
+                        char symbol;
+                        symbol = m_GameBoard[i, j]; 
+                        boardOutPut.AppendFormat("| {0} ", symbol);
+                    }
+                }
+
+                if (i > 0)
+                {
+                    boardOutPut.Append("|");
+                }
+
+                boardOutPut.Append(Environment.NewLine);
+                boardOutPut.Append(' ');
+                boardOutPut.Append('=', (boardLength * 4) + 1);
+                boardOutPut.Append(Environment.NewLine);
+            }
+            Console.WriteLine(boardOutPut);
+        }
+
+
+
 
 
         public class Player
@@ -693,6 +749,10 @@ namespace ReverseTicTacToe.Logic
             }
 
         }
+
+
+
+
 
     }
 }
