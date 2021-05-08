@@ -315,7 +315,7 @@ namespace ReverseTicTacToe.Logic
                         if (isSlotPartOfFullSequence(rowWinScan, colWinScan))
                         {
                             currentMoveRating += (int) (Math.Pow(2 , Math.Pow(2, i_ProbeDepth))); //for each possible winning scenario - increasing that slot's rating
-                            overallRating += i_ProbeDepth;
+                            overallRating += (int) (Math.Pow(2 , Math.Pow(2, i_ProbeDepth)));
                         }
                         else
                         {
