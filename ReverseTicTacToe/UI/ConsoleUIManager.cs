@@ -24,12 +24,13 @@ namespace ReverseTicTacToe.UI
         private Logic.ReverseTicTacToe m_Game;
         private void init()
         {
+            m_ErrorMessage = "";
+            m_firstTurn = true;
             WriteLine("Welcome to Reverse Tic Tac Toe!" + Environment.NewLine);
             int boardSize = getBoardSizeFromUser();
             Logic.ReverseTicTacToe.eGameMode gameMode = getGameTypeFromUser();
             m_Game = new Logic.ReverseTicTacToe(boardSize, gameMode);
-            m_ErrorMessage = "";
-            m_firstTurn = true;
+           
         }
         public void Run()
         {
@@ -67,16 +68,26 @@ namespace ReverseTicTacToe.UI
             string userAnswer;
             const bool v_AnotherRound = true;
             bool anotherRound = v_AnotherRound;
-            WriteLine(string.Format("Do you want to play another round? ({0}/{1})",k_YesSymbol, k_NoSymbol ));
+            bool validInput;
+            StringBuilder stringBuilder = new StringBuilder();
+            stringBuilder.AppendFormat("Do you want to play another round? ({0}/{1})", k_YesSymbol, k_NoSymbol);
             do
             {
+                writeErrorMsgIfAny();
+                WriteLine(stringBuilder);
                 userAnswer = ReadLine();
+                validInput = (userAnswer == k_YesSymbol || userAnswer == k_NoSymbol);
+                if(!validInput)
+                {
+                    m_ErrorMessage = "invalid input";
+                }
             }
-            while (userAnswer != k_YesSymbol && userAnswer != k_NoSymbol);
+            while (!validInput);
 
             if (userAnswer == k_YesSymbol)
             {
                 m_Game.RestartGame();
+                m_firstTurn = true;
             }
 
             if (userAnswer == k_NoSymbol)
@@ -90,7 +101,7 @@ namespace ReverseTicTacToe.UI
 
         private void clearScreenAndPrintGameBoard()
         {
-            //Ex02.ConsoleUtils.Screen.Clear(); REMOVED ONLY FOR DEBBUG PURPOSE
+            Ex02.ConsoleUtils.Screen.Clear(); //REMOVED ONLY FOR DEBBUG PURPOSE
 
             Console.WriteLine();
 
