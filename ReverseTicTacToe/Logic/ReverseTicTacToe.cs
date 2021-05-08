@@ -53,10 +53,10 @@ namespace ReverseTicTacToe.Logic
         private const char k_StartingDefaultEmptySlotChar = ' ';
         private const int k_MinimumGameBoardDimension = 2;
         private const int k_MaximumGameBoardDimension = 100; //not sure about this
-        private const int k_StartingAIProbingDepthDefault = 3; //NOTE! - increasing the probing depth over 3,
-                                                               //will cause a TREMENDOUS increase in the AI's running time.
-                                                               //which most PC's will NOT be able to perform within a reasonable
-                                                               //time frame, and thus is ill-advised!
+        private const int k_AIProbingDepth = 3; //NOTE! - increasing the probing depth over 3,
+                                                //will cause a TREMENDOUS increase in the AI's running time(in boards larger than 3x3),
+                                                //which most PC's will NOT be able to perform within a reasonable
+                                                //time frame, and thus is ill-advised!
 
         private static int s_DefaultBoardDimension = k_StartingDefaultBoardDimension;
         private static char s_DefaultPlayer1Char = k_StartingDefaultPlayer1Char;
@@ -75,7 +75,7 @@ namespace ReverseTicTacToe.Logic
         private eTurns m_CurrentTurn;
         private eGameStatus m_GameStatus;
         private Player m_Player1, m_Player2;
-        private int m_AIProbingDepth;
+
 
 
 
@@ -98,7 +98,7 @@ namespace ReverseTicTacToe.Logic
             m_Player2 = m_GameMode == eGameMode.PvP ? new Player("Player2") : new Player("Computer");
             m_GameStatus = eGameStatus.Ongoing;
             m_movesMadeCounter = 0;
-            m_AIProbingDepth = k_StartingAIProbingDepthDefault;
+
 
         }
 
@@ -242,39 +242,44 @@ namespace ReverseTicTacToe.Logic
         private void makeComputerMoveExperimental()
         {
             int chosenRow, chosenCol;
-            chooseSlotAI(out chosenRow, out chosenCol, m_AIProbingDepth, m_BoardDimension * m_BoardDimension - m_movesMadeCounter);
+            chooseSlotAI(out chosenRow, out chosenCol, k_AIProbingDepth, m_BoardDimension * m_BoardDimension - m_movesMadeCounter);
             makeMove(chosenRow, chosenCol);
         }
 
         /*
-        * General concept:
-        *
-        * "ProbeDepth" - will hold how far/deep into the "future" playes we're doing the probing. for example if ProbeDepth = 3, the
+         * General concept for AI function:
+         *
+         * "ProbeDepth" - will hold how far/deep into the "future" playes we're doing the probing. for example if ProbeDepth = 3, the
          * function will check every possible scenario within 3 moves ahead.
          *
-         * a "Rating" of a potential play is the AI's way to compate between move. The higher the rating is, the "better" the move
-         * is. And the move with the highest rating will be chosen.
+         * a "Rating" of a possible is the AI's way to compare between it's optional moves. The higher the rating is, the "better" the move
+         * is. And when the probing is done, the move with the highest rating will be chosen.
          *
          * The rating is calculated based on two factors:
-         * 1. how many no-loss scenarios that play leads to
-         * 2. how many win scenarios that play leads to
+         * 1. how many "no-loss" scenarios that play leads to
+         * 2. how many "win scenarios" that play leads to
          *
-         * The rating given for each factor also depends on how far are we in the probe. for example -
-         * if we've just started the probing proccess, the rating each scenario (1,2) will get will be HIGHER
-         * than if we were deeper/further in it
-        *
+         * The rating given for each factor also depends on how far are we into the probe. for example -
+         * if we've just started the probing proccess, the rating each scenario will get will be HIGHER
+         * than if we were deeper/further in it. and it will be smaller by a square root. (and of course
+         * that scenarios in which the AI losses will get 0 rating...)
+         *
+         * example:
+         * if our probeDepth is 3: the "no-loss" and "win" scenarions in the first probe will be given 256 rating each,
+         * then, in the second (recursive) probe each of those will get 16, and in the third and final one - 4.
+         *
          * for each empty slot on the board, the AI will do the following:
-         * check if playing that slot will NOT lead to immediate loss(a "no-loss" scenario). if it won't, the AI will add "ProbeDepth"
-         * to it's rating. and it'll also simulate playing that slot, and then, for each remaining empty slot,
-         * it will simulate the rival's play, and check if the rival will lose playing them. for each time the rival infact
-         * loses, the AI will again increase that rate.
+         * check if playing that slot will NOT lead to immediate loss(a "no-loss" scenario). if it won't, the AI will increase
+         * the rating. AND it'll also simulate playing that slot, and then, for each remaining empty slot,
+         * it will simulate the rival's(human) play, and check if the rival will lose playing them. for each time the rival infact
+         * loses, the AI will again increase that rate(a "win" scenario).
         *
         */
-        private int chooseSlotAI(out int o_Row, out int o_Col, int i_ProbeDepth, int i_CurrentEmptySlotsToScan)
+        private long chooseSlotAI(out int o_Row, out int o_Col, int i_ProbeDepth, int i_CurrentEmptySlotsToScan)
         {
             o_Row = 1;
             o_Col = 1;
-            int overallRating = 0;
+            long overallRating = 0;
             if (i_CurrentEmptySlotsToScan == 0 || i_ProbeDepth == 0)
             {
                 return overallRating;
@@ -287,11 +292,9 @@ namespace ReverseTicTacToe.Logic
             }
 
 
-            int currentHighestMoveRating = 0, currentRow = 1, currentCol = 1;
+            long currentHighestMoveRating = 0, individualScenarioRating = 0, currentMoveRating = 0;
             int currentBestMoveRow = 1, currentBestMoveCol = 1;
-            int individualScenarioRating = 0;
-            int currentMoveRating = 0;
-            int rowWinScan = 1, colWinScan = 1;
+            int rowWinScan = 1, colWinScan = 1, currentRow = 1, currentCol = 1;
             int rowTemp, colTemp;
 
 
@@ -303,7 +306,7 @@ namespace ReverseTicTacToe.Logic
 
                 if(!isSlotPartOfFullSequence(currentRow, currentCol)) //if it's not leading to immediate loss
                 {
-                    currentMoveRating += i_ProbeDepth; // we increase it's rating
+                    currentMoveRating += (int) (Math.Pow(2 , Math.Pow(2, i_ProbeDepth)))   ; // we increase it's rating
                     for (int j = 1; j < i_CurrentEmptySlotsToScan - 1; j++) //now checking possible moves by the (human) player,//in response to our move
                     {
                         getNextEmptySlotOnBoard(ref rowWinScan, ref colWinScan);
@@ -311,7 +314,7 @@ namespace ReverseTicTacToe.Logic
                         m_movesMadeCounter++;
                         if (isSlotPartOfFullSequence(rowWinScan, colWinScan))
                         {
-                            currentMoveRating += i_ProbeDepth; //for each possible winning scenario - increasing that slot's rating
+                            currentMoveRating += (int) (Math.Pow(2 , Math.Pow(2, i_ProbeDepth))); //for each possible winning scenario - increasing that slot's rating
                             overallRating += i_ProbeDepth;
                         }
                         else
@@ -344,10 +347,11 @@ namespace ReverseTicTacToe.Logic
             o_Col = currentBestMoveCol;
 
 
-            if (i_ProbeDepth == k_StartingAIProbingDepthDefault)
+            if (i_ProbeDepth == k_AIProbingDepth)
             {
-               // Console.WriteLine("Ai called. current empty slots to scan:  " + i_CurrentEmptySlotsToScan + Environment.NewLine);
+                //Console.WriteLine("Ai called. current empty slots to scan:  " + i_CurrentEmptySlotsToScan + Environment.NewLine);
                 //Console.WriteLine("Ai has chosen slot " + o_Row + ", " + o_Col + Environment.NewLine);
+                Console.WriteLine("The chosen slot's ai rating: " + currentHighestMoveRating + Environment.NewLine);
             }
 
             return overallRating;

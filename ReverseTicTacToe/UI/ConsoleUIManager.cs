@@ -15,8 +15,11 @@ namespace ReverseTicTacToe.UI
         private const int k_RowIndex = 0;
         private const int k_ColIndex = 1;
         private const string k_QuitSymbol = "Q";
+        private const string k_YesSymbol = "y";
+        private const string k_NoSymbol = "n";
         private string m_ErrorMessage;
         private bool m_firstTurn;
+        
 
         private Logic.ReverseTicTacToe m_Game;
         private void init()
@@ -64,19 +67,19 @@ namespace ReverseTicTacToe.UI
             string userAnswer;
             const bool v_AnotherRound = true;
             bool anotherRound = v_AnotherRound;
-            WriteLine("Do you want to play another round? (y/n)");
+            WriteLine(string.Format("Do you want to play another round? ({0}/{1})",k_YesSymbol, k_NoSymbol ));
             do
             {
                 userAnswer = ReadLine();
             }
-            while (userAnswer != "y" && userAnswer != "n");
+            while (userAnswer != k_YesSymbol && userAnswer != k_NoSymbol);
 
-            if (userAnswer == "y")
+            if (userAnswer == k_YesSymbol)
             {
                 m_Game.RestartGame();
             }
 
-            if (userAnswer == "n")
+            if (userAnswer == k_NoSymbol)
             {
                 WriteLine("Thanks for playing! bye bye!");
                 anotherRound = !v_AnotherRound;
@@ -87,7 +90,7 @@ namespace ReverseTicTacToe.UI
 
         private void clearScreenAndPrintGameBoard()
         {
-            //Ex02.ConsoleUtils.Screen.Clear(); REMOVE ONLY FOR DEBBUG PURPOSE
+            //Ex02.ConsoleUtils.Screen.Clear(); REMOVED ONLY FOR DEBBUG PURPOSE
 
             Console.WriteLine();
 
@@ -99,7 +102,7 @@ namespace ReverseTicTacToe.UI
                 {
                     if (i == 0 && j == 0)
                     {
-                        boardOutPut.Append("  ");
+                        boardOutPut.Append("   ");
                     }
                     else if (i == 0)
                     {
