@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Text;
-using static System.Console;
 
 namespace ReverseTicTacToe.UI
 {
     class ConsoleUIManager
     {
-        private const int k_NumOfCharsToDup = 4;
-        private const int k_NumOfCharsToAdd = 1;
+        private const int k_SeperatorBetweenLinesDuplicateFactor = 4;
+        private const int k_SeperatorBetweenLinesAddition = 1;
         private const int k_MinBoardSize = 3;
         private const int k_MaxBoardSize = 9;
         private const int k_MinGameType = 1;
@@ -19,16 +18,17 @@ namespace ReverseTicTacToe.UI
         private const string k_QuitSymbol = "Q";
         private const string k_YesSymbol = "y";
         private const string k_NoSymbol = "n";
+        private const char k_LinesSeperatorChar = '=';
+        private const char k_CollumsSeperatorChar = '|';
         private string m_ErrorMessage;
         private bool m_FirstTurn;
-        
-
         private Logic.ReverseTicTacToe m_Game;
+
         private void init()
         {
-            m_ErrorMessage = "";
-            m_FirstTurn = true;
-            WriteLine("Welcome to Reverse Tic Tac Toe!" + Environment.NewLine);
+            m_ErrorMessage = null;
+            m_FirstTurn = true; 
+            Console.WriteLine("Welcome to Reverse Tic Tac Toe!" + Environment.NewLine);
             int boardSize = getBoardSizeFromUser();
             Logic.ReverseTicTacToe.eGameMode gameMode = getGameTypeFromUser();
             m_Game = new Logic.ReverseTicTacToe(boardSize, gameMode);
@@ -37,6 +37,7 @@ namespace ReverseTicTacToe.UI
         public void Run()
         {
             bool gameRunning = true;
+
             init();
             while (gameRunning)
             {
@@ -58,10 +59,10 @@ namespace ReverseTicTacToe.UI
 
         private void printErrorMsgIfAny()
         {
-            if (m_ErrorMessage != "")
+            if (m_ErrorMessage != null)
             {
-                WriteLine(m_ErrorMessage);
-                m_ErrorMessage = "";
+                Console.WriteLine(m_ErrorMessage);
+                m_ErrorMessage = null;
             }
         }
 
@@ -71,13 +72,13 @@ namespace ReverseTicTacToe.UI
             const bool v_AnotherRound = true;
             bool anotherRound = v_AnotherRound;
             bool validInput;
-            StringBuilder stringBuilder = new StringBuilder();
-            stringBuilder.AppendFormat("Do you want to play another round? ({0}/{1})", k_YesSymbol, k_NoSymbol);
+            string userMsg = string.Format("Do you want to play another round? ({0}/{1})", k_YesSymbol, k_NoSymbol);
+
             do
             {
                 printErrorMsgIfAny();
-                WriteLine(stringBuilder);
-                userAnswer = ReadLine();
+                Console.WriteLine(userMsg);
+                userAnswer = Console.ReadLine();
                 validInput = (userAnswer == k_YesSymbol || userAnswer == k_NoSymbol);
                 if(!validInput)
                 {
@@ -94,7 +95,7 @@ namespace ReverseTicTacToe.UI
 
             if (userAnswer == k_NoSymbol)
             {
-                WriteLine("Thanks for playing! bye bye!");
+                Console.WriteLine("Thanks for playing! bye bye!");
                 anotherRound = !v_AnotherRound;
             }
 
@@ -103,12 +104,12 @@ namespace ReverseTicTacToe.UI
 
         private void clearScreenAndPrintGameBoard()
         {
-            Ex02.ConsoleUtils.Screen.Clear(); //REMOVED ONLY FOR DEBBUG PURPOSE
-
-            Console.WriteLine();
-
             StringBuilder boardOutPut = new StringBuilder();
             int boardLength = m_Game.BoardSize;
+
+            Ex02.ConsoleUtils.Screen.Clear();
+            Console.WriteLine();
+
             for (int i = 0; i <= boardLength; i++)
             {
                 for (int j = 0; j <= boardLength; j++)
@@ -129,28 +130,30 @@ namespace ReverseTicTacToe.UI
                     {
                         char symbol;
                         m_Game.GetSlotContentByIndex(i, j, out symbol);
-                        boardOutPut.AppendFormat("| {0} ", symbol);
+                        boardOutPut.AppendFormat("{0} {1} ",k_CollumsSeperatorChar, symbol);
                     }
                 }
 
                 if (i > 0)
                 {
-                    boardOutPut.Append("|");
+                    boardOutPut.Append(k_CollumsSeperatorChar);
                 }
-
+                
                 boardOutPut.Append(Environment.NewLine);
                 boardOutPut.Append(' ');
-                boardOutPut.Append('=', (boardLength * k_NumOfCharsToDup) + k_NumOfCharsToAdd);
+                boardOutPut.Append(k_LinesSeperatorChar, (boardLength * k_SeperatorBetweenLinesDuplicateFactor) + k_SeperatorBetweenLinesAddition);
                 boardOutPut.Append(Environment.NewLine);
             }
-            WriteLine(boardOutPut);
+
+            Console.WriteLine(boardOutPut);
         }
+
         private void makeTurn()
         {
             Logic.ReverseTicTacToe.eLastActionStatus lastActionStatus;
             int playerRowInput, playerColInput;
-
             bool playerQuit = getMoveInputOrQuit(out playerRowInput, out playerColInput);
+
             if (playerQuit)
             {
                 m_Game.Forfeit(out lastActionStatus);
@@ -175,6 +178,7 @@ namespace ReverseTicTacToe.UI
         private void printEndGame()
         {
             StringBuilder msg = new StringBuilder();
+
             if (m_Game.GameStatus == Logic.ReverseTicTacToe.eGameStatus.TieGame)
             {
                 msg.AppendFormat("Game Over! It's a tie! Players score:{0}", Environment.NewLine);
@@ -187,8 +191,9 @@ namespace ReverseTicTacToe.UI
             {
                 msg.AppendFormat("Game Over! {0} won! Players score:{1}",m_Game.Player2Name ,Environment.NewLine);
             }
+
             msg.AppendFormat("{0}: {1}{2}{3}: {4}", m_Game.Player1Name,m_Game.Player1Score, Environment.NewLine,m_Game.Player2Name, m_Game.Player2Score);
-            WriteLine(msg);
+            Console.WriteLine(msg);
         }
 
         private bool getMoveInputOrQuit(out int o_Row, out int o_Col)
@@ -197,15 +202,16 @@ namespace ReverseTicTacToe.UI
             string userInputStr;
             bool isValidInput;
             string pcTurnPlayedStr = "";
+
            if(m_Game.GameMode == Logic.ReverseTicTacToe.eGameMode.PvC && !m_FirstTurn) {
-                pcTurnPlayedStr = String.Format("Computer made his move.{0}", Environment.NewLine);
+                pcTurnPlayedStr = String.Format("{0} has made his move.{1}",m_Game.Player2Name ,Environment.NewLine);
            }
             msg.AppendFormat("{0}{1} it's your turn! please enter row,col:", pcTurnPlayedStr, m_Game.CurrentTurn.ToString());
             do
             {
                 printErrorMsgIfAny();
-                WriteLine(msg);
-                userInputStr = ReadLine();
+                Console.WriteLine(msg);
+                userInputStr = Console.ReadLine();
                 isValidInput = checkIsTurnInputValidAndParse(userInputStr, out o_Row, out o_Col);
                 if (!isValidInput)
                 {
@@ -273,8 +279,8 @@ namespace ReverseTicTacToe.UI
             do
             {
                 printErrorMsgIfAny();
-                WriteLine(msg);
-                userInputStr = ReadLine();
+                Console.WriteLine(msg);
+                userInputStr = Console.ReadLine();
                 isValidInput = checkIsStringRepresentsNumberWithinRangeAndParse(
                     userInputStr,
                     out boardSize,
@@ -331,8 +337,8 @@ namespace ReverseTicTacToe.UI
             do
             {
                 printErrorMsgIfAny();
-                WriteLine(msg);
-                userInputStr = ReadLine();
+                Console.WriteLine(msg);
+                userInputStr = Console.ReadLine();
                 isValidInput = checkIsStringRepresentsNumberWithinRangeAndParse(
                     userInputStr,
                     out gameTypeNum,

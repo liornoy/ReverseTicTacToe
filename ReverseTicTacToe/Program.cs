@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using ReverseTicTacToe.Tests;
-using ReverseTicTacToe.UI;
+﻿using ReverseTicTacToe.UI;
 
 namespace ReverseTicTacToe
 {
@@ -14,7 +8,6 @@ namespace ReverseTicTacToe
         {
             ConsoleUIManager consoleUiManager = new ConsoleUIManager();
             consoleUiManager.Run();
-           // UITests.TestUI();
         }
     }
 }
