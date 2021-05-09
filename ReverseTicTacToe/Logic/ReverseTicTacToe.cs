@@ -51,8 +51,11 @@ namespace ReverseTicTacToe.Logic
         private const char k_StartingDefaultPlayer1Char = 'X';
         private const char k_StartingDefaultPlayer2Char = 'O';
         private const char k_StartingDefaultEmptySlotChar = ' ';
+        private const string k_DefaultPlayer1Name = "Player1";
+        private const string k_DefaultPlayer2Name = "Player2";
+        private const string k_DefaultPCPlayerName = "Computer";
         private const int k_MinimumGameBoardDimension = 2;
-        private const int k_MaximumGameBoardDimension = 100; //not sure about this
+        private const int k_MaximumGameBoardDimension = 100;
 
         //NOTE! -  be CAREFULL when chaning these AI constant! 
         //changing the AI-probing values may result in a TREMENDOUS increase in
@@ -75,20 +78,14 @@ namespace ReverseTicTacToe.Logic
 
         private char m_Player1Char, m_Player2Char, m_EmptySlotChar;
         private char[,] m_GameBoard;
-        private int m_BoardDimension, m_movesMadeCounter;
+        private int m_BoardDimension, m_MovesMadeCounter;
         private eGameMode m_GameMode;
         private eTurns m_CurrentTurn;
         private eGameStatus m_GameStatus;
         private Player m_Player1, m_Player2;
 
-
-
-
-        // Ofir - maybe we should make some other constructors with different parameters
-        // to give the user more options - improve reusabillity
         public ReverseTicTacToe(int i_BoardDimension, eGameMode i_GameMode)
         {
-            //Ofir - since we didnt learn exceptions yet, how should be handle out of range board size in constructor?
             m_BoardDimension = IsInRange(i_BoardDimension, k_MinimumGameBoardDimension, k_MaximumGameBoardDimension)
                                    ? i_BoardDimension
                                    : s_DefaultBoardDimension;
@@ -99,12 +96,9 @@ namespace ReverseTicTacToe.Logic
             m_EmptySlotChar = s_DefaultEmptySlotChar;
             m_GameBoard = new char[m_BoardDimension, m_BoardDimension];
             clearBoard();
-            m_Player1 = new Player("Player1");
-            m_Player2 = m_GameMode == eGameMode.PvP ? new Player("Player2") : new Player("Computer");
+            m_Player1 = new Player(k_DefaultPlayer1Name);
+            m_Player2 = m_GameMode == eGameMode.PvP ? new Player(k_DefaultPlayer2Name) : new Player(k_DefaultPCPlayerName);
             m_GameStatus = eGameStatus.Ongoing;
-            m_movesMadeCounter = 0;
-
-
         }
 
         public int BoardSize
@@ -126,7 +120,7 @@ namespace ReverseTicTacToe.Logic
 
         public bool IsBoardClear()
         {
-            return m_movesMadeCounter == 0;
+            return m_MovesMadeCounter == 0;
         }
 
         public static bool IsInRange(int i_Num, int i_Min, int i_Max)
@@ -177,7 +171,7 @@ namespace ReverseTicTacToe.Logic
         private void makeMove(int i_Row, int i_Col)
         {
             m_GameBoard[i_Row - 1, i_Col - 1] = GetCurrentPlayerChar();
-            m_movesMadeCounter++;
+            m_MovesMadeCounter++;
             if (isSlotPartOfFullSequence(i_Row, i_Col)) // maybe should  have a "switch" statement here?
             {
                 if ((m_CurrentTurn == eTurns.Player1))
@@ -227,7 +221,7 @@ namespace ReverseTicTacToe.Logic
 
         public int GetCurrentEmptySlotsNumber()
         {
-            return (m_BoardDimension * m_BoardDimension) - m_movesMadeCounter;
+            return (m_BoardDimension * m_BoardDimension) - m_MovesMadeCounter;
         }
 
         /*
@@ -290,7 +284,7 @@ namespace ReverseTicTacToe.Logic
                     {
                         getNextEmptySlotOnBoard(ref currentRow, ref currentCol);
                         m_GameBoard[currentRow - 1, currentCol - 1] = m_Player2Char; //filling an empty slot
-                        m_movesMadeCounter++;
+                        m_MovesMadeCounter++;
 
                         if (!isSlotPartOfFullSequence(currentRow, currentCol)) //if it's not leading to immediate loss
                         {
@@ -302,7 +296,7 @@ namespace ReverseTicTacToe.Logic
                                 {
                                     getNextEmptySlotOnBoard(ref rowWinScan, ref colWinScan);
                                     m_GameBoard[rowWinScan - 1, colWinScan - 1] = m_Player1Char;
-                                    m_movesMadeCounter++;
+                                    m_MovesMadeCounter++;
                                     if (isSlotPartOfFullSequence(rowWinScan, colWinScan))
                                     {
                                         currentMoveRating += winScenarioRating; //for each possible winning scenario - increasing that slot's rating
@@ -317,7 +311,7 @@ namespace ReverseTicTacToe.Logic
                                         overallRating += individualScenarioRating;
                                     }
                                     m_GameBoard[rowWinScan - 1, colWinScan - 1] = m_EmptySlotChar; //emptying back the filled slot
-                                    m_movesMadeCounter--;
+                                    m_MovesMadeCounter--;
                                 }
                             }
                         }
@@ -329,7 +323,7 @@ namespace ReverseTicTacToe.Logic
                             currentBestMoveCol = currentCol;
                         }
                         m_GameBoard[currentRow - 1, currentCol - 1] = m_EmptySlotChar; //emptying back the filled slot
-                        m_movesMadeCounter--;
+                        m_MovesMadeCounter--;
 
                         currentMoveRating = 0;
                     }
@@ -422,7 +416,8 @@ namespace ReverseTicTacToe.Logic
             m_Player1.Score = 0;
             m_Player2.Score = 0;
         }
-
+       
+        // Lior - I think we can delete this 
         public void RestartGameAndClearScores()
         {
             RestartGame();
@@ -463,7 +458,7 @@ namespace ReverseTicTacToe.Logic
 
         public char GetCurrentPlayerChar()
         {
-            char currentPlayerChar = k_StartingDefaultEmptySlotChar;
+            char currentPlayerChar;
             if (m_CurrentTurn == eTurns.Player1)
             {
                 currentPlayerChar = m_Player1Char;
@@ -478,11 +473,11 @@ namespace ReverseTicTacToe.Logic
 
         public bool IsBoardFull()
         {
-            return m_movesMadeCounter == m_BoardDimension * m_BoardDimension;
+            return m_MovesMadeCounter == m_BoardDimension * m_BoardDimension;
         }
 
-        //OFIR - we could make this a bit more efficient by after each direction checking if we've hit a sequence, but that would make the
-        //code much uglier, what do you think?
+        //This function gets a row and a col indexes and checks if by adding this move to the board
+        //will complete a winning sequence.
         private bool isSlotPartOfFullSequence(int i_Row, int i_Col)
         {
             const bool v_SequenceFound = true;
@@ -588,8 +583,10 @@ namespace ReverseTicTacToe.Logic
         {
             const bool v_SlotFree = true;
             bool isSlotFree;
-            if (!IsSlotIndexWithinBounds(i_Row, i_Col))
+            if(!IsSlotIndexWithinBounds(i_Row, i_Col))
+            {
                 isSlotFree = !v_SlotFree;
+            }
             else
             {
                 isSlotFree = (m_GameBoard[i_Row - 1, i_Col - 1] == m_EmptySlotChar);
@@ -597,7 +594,6 @@ namespace ReverseTicTacToe.Logic
 
             return isSlotFree;
         }
-
 
         public bool GetSlotContentByIndex(int i_Row, int i_Col, out char o_Char)
         {
@@ -626,7 +622,7 @@ namespace ReverseTicTacToe.Logic
                 }
             }
 
-            m_movesMadeCounter = 0;
+            m_MovesMadeCounter = 0;
         }
 
         public int Player1Score
@@ -655,6 +651,21 @@ namespace ReverseTicTacToe.Logic
                 {
                     m_Player2.Score = value;
                 }
+            }
+        }
+
+        public string Player1Name
+        {
+            get
+            {
+                return m_Player1.Name;
+            }
+        }
+        public string Player2Name
+        {
+            get
+            {
+                return m_Player2.Name;
             }
         }
 
@@ -702,6 +713,13 @@ namespace ReverseTicTacToe.Logic
                 m_Score = 0;
             }
 
+            public string Name
+            {
+                get
+                {
+                    return m_Name;
+                }
+            }
             public int Score
             {
                 get
