@@ -21,7 +21,6 @@ namespace ReverseTicTacToe.Logic
             FailedOutOfBounds
         }
 
-
         public enum eGameMode
         {
             PvP = 1,
@@ -47,35 +46,27 @@ namespace ReverseTicTacToe.Logic
         }
 
         private const char k_AccessToSlotFailedChar = '0';
-        private const int k_StartingDefaultBoardDimension = 3;
-        private const char k_StartingDefaultPlayer1Char = 'X';
-        private const char k_StartingDefaultPlayer2Char = 'O';
-        private const char k_StartingDefaultEmptySlotChar = ' ';
+        private const int k_DefaultBoardDimension = 3;
+        private const char k_DefaultPlayer1Char = 'X';
+        private const char k_DefaultPlayer2Char = 'O';
+        private const char k_DefaultEmptySlotChar = ' ';
         private const string k_DefaultPlayer1Name = "Player1";
         private const string k_DefaultPlayer2Name = "Player2";
         private const string k_DefaultPCPlayerName = "Computer";
+        private const eTurns k_DefaultFirstTurn = eTurns.Player1;
         private const int k_MinimumGameBoardDimension = 2;
         private const int k_MaximumGameBoardDimension = 100;
-
-        //NOTE! -  be CAREFULL when chaning these AI constant! 
-        //changing the AI-probing values may result in a TREMENDOUS increase in
-        //the AI running time, which most PC's wouldn't be able to handle within
-        //a reasonable time frame.
+        // NOTE! -  be CAREFULL when chaning these AI constant! 
+        // changing the AI-probing values may result in a TREMENDOUS increase in
+        // the AI running time, which most PC's wouldn't be able to handle within
+        // a reasonable time frame.
         private const int k_AILargeScanningAreaDefaultProbingDepth = 2;
         private const int k_AIMediumScanningAreaDefaultProbingDepth = 3;
         private const int k_AILowScanningAreaDefaultProbingDepth = 4;
         private const int k_AILowScanningAreaMax = 10;
         private const int k_AIMediumScanningAreaMin = 10;
         private const int k_AILargeScanningAreaMin = 12;
-
         private const double k_AINoLossScenarioIncreaseFactor = 1.1;
-        private static int s_DefaultBoardDimension = k_StartingDefaultBoardDimension;
-        private static char s_DefaultPlayer1Char = k_StartingDefaultPlayer1Char;
-        private static char s_DefaultPlayer2Char = k_StartingDefaultPlayer2Char;
-        private static eGameMode s_DefaultGameMode = eGameMode.PvP;
-        private static eTurns s_DefaultFirstTurn = eTurns.Player1;
-        private static char s_DefaultEmptySlotChar = k_StartingDefaultEmptySlotChar;
-
         private char m_Player1Char, m_Player2Char, m_EmptySlotChar;
         private char[,] m_GameBoard;
         private int m_BoardDimension, m_MovesMadeCounter;
@@ -84,16 +75,21 @@ namespace ReverseTicTacToe.Logic
         private eGameStatus m_GameStatus;
         private Player m_Player1, m_Player2;
 
+        public static bool IsInRange(int i_Num, int i_Min, int i_Max)
+        {
+            return i_Num <= i_Max && i_Num >= i_Min;
+        }
+
         public ReverseTicTacToe(int i_BoardDimension, eGameMode i_GameMode)
         {
             m_BoardDimension = IsInRange(i_BoardDimension, k_MinimumGameBoardDimension, k_MaximumGameBoardDimension)
                                    ? i_BoardDimension
-                                   : s_DefaultBoardDimension;
+                                   : k_DefaultBoardDimension;
             m_GameMode = i_GameMode;
-            m_Player1Char = s_DefaultPlayer1Char;
-            m_Player2Char = s_DefaultPlayer2Char;
-            m_CurrentTurn = s_DefaultFirstTurn;
-            m_EmptySlotChar = s_DefaultEmptySlotChar;
+            m_Player1Char = k_DefaultPlayer1Char;
+            m_Player2Char = k_DefaultPlayer2Char;
+            m_CurrentTurn = k_DefaultFirstTurn;
+            m_EmptySlotChar = k_DefaultEmptySlotChar;
             m_GameBoard = new char[m_BoardDimension, m_BoardDimension];
             clearBoard();
             m_Player1 = new Player(k_DefaultPlayer1Name);
@@ -123,16 +119,10 @@ namespace ReverseTicTacToe.Logic
             return m_MovesMadeCounter == 0;
         }
 
-        public static bool IsInRange(int i_Num, int i_Min, int i_Max)
-        {
-            return i_Num <= i_Max && i_Num >= i_Min;
-        }
-
         public bool IsSlotIndexWithinBounds(int i_Row, int i_Col)
         {
-            return (IsInRange(i_Row, 1, m_BoardDimension) && IsInRange(i_Col, 1, m_BoardDimension));
+            return IsInRange(i_Row, 1, m_BoardDimension) && IsInRange(i_Col, 1, m_BoardDimension);
         }
-
 
         public bool AttemptMove(int i_Row, int i_Col, out eLastActionStatus o_MoveStatus)
         {
@@ -158,7 +148,7 @@ namespace ReverseTicTacToe.Logic
                 o_MoveStatus = eLastActionStatus.Good;
                 makeMove(i_Row, i_Col);
                 isMoveMadeSuccessfully = v_MoveMadeSuccessfully;
-                if(m_GameMode == eGameMode.PvC && !IsGameOver() && m_CurrentTurn == eTurns.Player2)
+                if (m_GameMode == eGameMode.PvC && !IsGameOver() && m_CurrentTurn == eTurns.Player2)
                 {
                     makeComputerMove();
                 }
@@ -167,14 +157,14 @@ namespace ReverseTicTacToe.Logic
             return isMoveMadeSuccessfully;
         }
 
-        //This functions assumes the move is legal and can be done.
+        // This functions assumes the move is legal and can be done.
         private void makeMove(int i_Row, int i_Col)
         {
             m_GameBoard[i_Row - 1, i_Col - 1] = GetCurrentPlayerChar();
             m_MovesMadeCounter++;
-            if (isSlotPartOfFullSequence(i_Row, i_Col)) // maybe should  have a "switch" statement here?
+            if (isSlotPartOfFullSequence(i_Row, i_Col))
             {
-                if ((m_CurrentTurn == eTurns.Player1))
+                if (m_CurrentTurn == eTurns.Player1)
                 {
                     m_GameStatus = eGameStatus.Player2Won;
                     m_Player2.Score++;
@@ -185,7 +175,6 @@ namespace ReverseTicTacToe.Logic
                     m_Player1.Score++;
                 }
             }
-
             else if (IsBoardFull())
             {
                 m_GameStatus = eGameStatus.TieGame;
@@ -201,26 +190,25 @@ namespace ReverseTicTacToe.Logic
             makeMove(chosenRow, chosenCol);
         }
 
-        public getCurrentPlayerName()
+        public string getCurrentPlayerName()
         {
-            return 
+            return m_CurrentTurn == eTurns.Player1 ? m_Player1.Name : m_Player2.Name;
         }
 
         public int getAIProbingDepth()
         {
             int probeDepth = k_AILargeScanningAreaDefaultProbingDepth;
             int emptySlots = GetCurrentEmptySlotsNumber();
-            if(emptySlots >= k_AILowScanningAreaMax && emptySlots < k_AILargeScanningAreaMin)
+            if (emptySlots >= k_AILowScanningAreaMax && emptySlots < k_AILargeScanningAreaMin)
             {
                 probeDepth = k_AIMediumScanningAreaDefaultProbingDepth;
             }
-            if(emptySlots < k_AILowScanningAreaMax)
+            else if (emptySlots < k_AILowScanningAreaMax)
             {
                 probeDepth = k_AILowScanningAreaDefaultProbingDepth;
             }
 
             return probeDepth;
-
         }
 
         public int GetCurrentEmptySlotsNumber()
@@ -281,67 +269,63 @@ namespace ReverseTicTacToe.Logic
                     int currentBestMoveRow = 1, currentBestMoveCol = 1;
                     int rowWinScan = 1, colWinScan = 1, currentRow = 1, currentCol = 1;
                     int rowTemp, colTemp;
-                    ulong noLossScenarioRating = (ulong)((Math.Pow(2, Math.Pow(2, i_ProbeDepth))) * k_AINoLossScenarioIncreaseFactor);
-                    ulong winScenarioRating = (ulong)(Math.Pow(2, Math.Pow(2, i_ProbeDepth - 1)));
+                    ulong noLossScenarioRating = (ulong)(Math.Pow(2, Math.Pow(2, i_ProbeDepth)) * k_AINoLossScenarioIncreaseFactor);
+                    ulong winScenarioRating = (ulong)Math.Pow(2, Math.Pow(2, i_ProbeDepth - 1));
                     
                     for (int i = 1; i <= GetCurrentEmptySlotsNumber(); i++)
                     {
                         getNextEmptySlotOnBoard(ref currentRow, ref currentCol);
-                        m_GameBoard[currentRow - 1, currentCol - 1] = m_Player2Char; //filling an empty slot
+                        m_GameBoard[currentRow - 1, currentCol - 1] = m_Player2Char; // filling an empty slot
                         m_MovesMadeCounter++;
 
-                        if (!isSlotPartOfFullSequence(currentRow, currentCol)) //if it's not leading to immediate loss
+                        if (!isSlotPartOfFullSequence(currentRow, currentCol)) // if it's not leading to immediate loss
                         {
                             currentMoveRating += noLossScenarioRating; // we increase it's rating
                             overallRating += noLossScenarioRating;
-                            if(i_ProbeDepth > 1)
+                            if (i_ProbeDepth > 1)
                             {
-                                for (int j = 1; j < GetCurrentEmptySlotsNumber(); j++) //now checking possible moves by the (human) player, in response to our simlated move
+                                for (int j = 1; j < GetCurrentEmptySlotsNumber(); j++) // now checking possible moves by the (human) player, in response to our simlated move
                                 {
                                     getNextEmptySlotOnBoard(ref rowWinScan, ref colWinScan);
                                     m_GameBoard[rowWinScan - 1, colWinScan - 1] = m_Player1Char;
                                     m_MovesMadeCounter++;
                                     if (isSlotPartOfFullSequence(rowWinScan, colWinScan))
                                     {
-                                        currentMoveRating += winScenarioRating; //for each possible winning scenario - increasing that slot's rating
+                                        currentMoveRating += winScenarioRating; // for each possible winning scenario - increasing that slot's rating
                                         overallRating += winScenarioRating;
                                     }
                                     else
                                     {
-                                        //for each computer possible move, that doesn't lead to an immediate loss, we simulate a move for the (human)
-                                        //player, and if that doesn't lead to our immediate win - then we start probing RECURSIVLY.
+                                        // for each computer possible move, that doesn't lead to an immediate loss, we simulate a move for the (human)
+                                        // player, and if that doesn't lead to our immediate win - then we start probing RECURSIVLY.
                                         individualScenarioRating = chooseSlotAI(out rowTemp, out colTemp, i_ProbeDepth - 2);
                                         currentMoveRating += individualScenarioRating;
                                         overallRating += individualScenarioRating;
                                     }
-                                    m_GameBoard[rowWinScan - 1, colWinScan - 1] = m_EmptySlotChar; //emptying back the filled slot
+                                    m_GameBoard[rowWinScan - 1, colWinScan - 1] = m_EmptySlotChar; // emptying back the filled slot
                                     m_MovesMadeCounter--;
                                 }
                             }
                         }
-                        //now we choose the move with the highest rating:
+                        // now we choose the move with the highest rating:
                         if (currentMoveRating >= currentHighestMoveRating)
                         {
                             currentHighestMoveRating = currentMoveRating;
                             currentBestMoveRow = currentRow;
                             currentBestMoveCol = currentCol;
                         }
-                        m_GameBoard[currentRow - 1, currentCol - 1] = m_EmptySlotChar; //emptying back the filled slot
+                        m_GameBoard[currentRow - 1, currentCol - 1] = m_EmptySlotChar; // emptying back the filled slot
                         m_MovesMadeCounter--;
-
                         currentMoveRating = 0;
                     }
 
                     o_Row = currentBestMoveRow;
                     o_Col = currentBestMoveCol;
-
                 }
-
             }
+
             return overallRating;
         }
-
-
 
         private bool getNextEmptySlotOnBoard(ref int io_Row, ref int io_Col)
         {
@@ -349,7 +333,7 @@ namespace ReverseTicTacToe.Logic
             const bool v_EmptySlotFound = true;
             bool isEmptySlotFound = !v_EmptySlotFound;
 
-            if(io_Col != m_BoardDimension)
+            if (io_Col != m_BoardDimension)
             {
                 io_Col++;
             }
@@ -362,11 +346,11 @@ namespace ReverseTicTacToe.Logic
 
             if (!IsBoardFull())
             {
-                while(slotScannedCounter <= (m_BoardDimension * m_BoardDimension) && !isEmptySlotFound)
+                while (slotScannedCounter <= (m_BoardDimension * m_BoardDimension) && !isEmptySlotFound)
                 {
-                    while(slotScannedCounter <= (m_BoardDimension * m_BoardDimension) && !isEmptySlotFound && io_Col <= m_BoardDimension)
+                    while (slotScannedCounter <= (m_BoardDimension * m_BoardDimension) && !isEmptySlotFound && io_Col <= m_BoardDimension)
                     {
-                        if(m_GameBoard[io_Row - 1, io_Col - 1] == m_EmptySlotChar)
+                        if (m_GameBoard[io_Row - 1, io_Col - 1] == m_EmptySlotChar)
                         {
                             isEmptySlotFound = v_EmptySlotFound;
                         }
@@ -377,21 +361,16 @@ namespace ReverseTicTacToe.Logic
                         }
                         
                     }
-                    if(!isEmptySlotFound)
+                    if (!isEmptySlotFound)
                     {
                         io_Col = 1;
                         io_Row = (io_Row == m_BoardDimension) ? 1 : io_Row + 1;
                     }
-                    
                 }
             }
 
-           // Console.WriteLine(("The next empty slot is " + io_Row + ", " + io_Col + " \n"));
-
-
             return isEmptySlotFound;
         }
-
 
         private char[,] cloneGameBoard()
         {
@@ -411,7 +390,7 @@ namespace ReverseTicTacToe.Logic
         public void RestartGame()
         {
             clearBoard();
-            m_CurrentTurn = s_DefaultFirstTurn;
+            m_CurrentTurn = k_DefaultFirstTurn;
             m_GameStatus = eGameStatus.Ongoing;
         }
 
@@ -421,13 +400,11 @@ namespace ReverseTicTacToe.Logic
             m_Player2.Score = 0;
         }
        
-        // Lior - I think we can delete this 
         public void RestartGameAndClearScores()
         {
             RestartGame();
             ClearScores();
         }
-
 
         public bool Forfeit(out eLastActionStatus o_ActionStatus)
         {
@@ -480,8 +457,8 @@ namespace ReverseTicTacToe.Logic
             return m_MovesMadeCounter == m_BoardDimension * m_BoardDimension;
         }
 
-        //This function gets a row and a col indexes and checks if by adding this move to the board
-        //will complete a winning sequence.
+        // This function gets a row and a col indexes and checks if by adding this move to the board
+        // will complete a winning sequence.
         private bool isSlotPartOfFullSequence(int i_Row, int i_Col)
         {
             const bool v_SequenceFound = true;
@@ -506,8 +483,8 @@ namespace ReverseTicTacToe.Logic
         }
 
 
-        //This function will scan the board, STARTING from the given slot(i_Row, i_Col), and TOWARDS the given direction.
-        //It will return how many EQUAL SLOTS (to the starting slot) there are in that direction - NOT including the original slot.
+        // This function will scan the board, STARTING from the given slot(i_Row, i_Col), and TOWARDS the given direction.
+        // It will return how many EQUAL SLOTS (to the starting slot) there are in that direction - NOT including the original slot.
         private int SequenceSizeFromSlotToDirection(int i_Row, int i_Col, eBoardScanningDirections i_ScanningDirection)
         {
             const bool v_insideSequence = true;
@@ -532,7 +509,7 @@ namespace ReverseTicTacToe.Logic
             return sequenceSize;
         }
 
-        //NOTE - This function does NOT check for out of bounds when advancing the indexes.
+        // NOTE - This function does NOT check for out of bounds when advancing the indexes.
         private void advanceToNextSlotInGivenDirection(
             ref int io_Row,
             ref int io_Col,
@@ -579,21 +556,21 @@ namespace ReverseTicTacToe.Logic
 
         public bool IsGameOver()
         {
-            return (m_GameStatus == eGameStatus.Player1Won || m_GameStatus == eGameStatus.Player2Won
-                                                           || m_GameStatus == eGameStatus.TieGame);
+            return m_GameStatus == eGameStatus.Player1Won || m_GameStatus == eGameStatus.Player2Won
+                                                           || m_GameStatus == eGameStatus.TieGame;
         }
 
         public bool IsSlotFree(int i_Row, int i_Col)
         {
             const bool v_SlotFree = true;
             bool isSlotFree;
-            if(!IsSlotIndexWithinBounds(i_Row, i_Col))
+            if (!IsSlotIndexWithinBounds(i_Row, i_Col))
             {
                 isSlotFree = !v_SlotFree;
             }
             else
             {
-                isSlotFree = (m_GameBoard[i_Row - 1, i_Col - 1] == m_EmptySlotChar);
+                isSlotFree = m_GameBoard[i_Row - 1, i_Col - 1] == m_EmptySlotChar;
             }
 
             return isSlotFree;
@@ -649,6 +626,7 @@ namespace ReverseTicTacToe.Logic
             {
                 return m_Player2.Score;
             }
+
             set
             {
                 if (value >= 0)
@@ -665,6 +643,7 @@ namespace ReverseTicTacToe.Logic
                 return m_Player1.Name;
             }
         }
+
         public string Player2Name
         {
             get
@@ -679,9 +658,10 @@ namespace ReverseTicTacToe.Logic
             {
                 return m_GameMode;
             }
+
             set
             {
-                //INCOMPLETE
+                // INCOMPLETE
             }
         }
 
@@ -691,6 +671,7 @@ namespace ReverseTicTacToe.Logic
             {
                 return m_CurrentTurn;
             }
+
             set
             {
                 m_CurrentTurn = value;
@@ -704,7 +685,6 @@ namespace ReverseTicTacToe.Logic
                 return m_GameStatus;
             }
         }
-
         
         public class Player
         {
@@ -733,15 +713,11 @@ namespace ReverseTicTacToe.Logic
                 set
                 {
                     if (value >= 0)
+                    {
                         m_Score = value;
+                    }  
                 }
             }
-
         }
-
-
-
-
-
     }
 }
