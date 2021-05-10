@@ -56,9 +56,9 @@
         private const int k_MinimumGameBoardDimension = 2;
         private const int k_MaximumGameBoardDimension = 100;
 
-        // NOTE! -  be CAREFULL when chaning these AI constant! 
+        // NOTE! -  be CAREFULL when chaning these AI constants! 
         // changing the AI-probing values may result in a TREMENDOUS increase in
-        // the AI running time, which most PC's wouldn't be able to handle within
+        // the AI running times, which most PC's wouldn't be able to handle within
         // a reasonable time frame.
         private const int k_AILargeScanningAreaDefaultProbingDepth = 2;
         private const int k_AIMediumScanningAreaDefaultProbingDepth = 3;
@@ -436,8 +436,6 @@
             return isForfeitSuccessful;
         }
 
-
-
         public char GetCurrentPlayerChar()
         {
             char currentPlayerChar;
@@ -662,7 +660,15 @@
 
             set
             {
-                // INCOMPLETE
+                if (m_GameStatus != eGameStatus.Ongoing && value != m_GameMode)
+                {
+                    RestartGame();
+                    m_GameMode = value;
+                    if (m_GameMode == eGameMode.PvC)
+                    { 
+                        m_Player2.Name = k_DefaultPCPlayerName;
+                    }
+                }
             }
         }
 
@@ -704,6 +710,12 @@
                 {
                     return m_Name;
                 }
+
+                set
+                {
+                    m_Name = new string(value.ToCharArray());
+                }
+
             }
             public int Score
             {
@@ -711,6 +723,7 @@
                 {
                     return m_Score;
                 }
+                
                 set
                 {
                     if (value >= 0)
