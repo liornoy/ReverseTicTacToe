@@ -201,6 +201,10 @@ namespace ReverseTicTacToe.Logic
             makeMove(chosenRow, chosenCol);
         }
 
+        public getCurrentPlayerName()
+        {
+            return 
+        }
 
         public int getAIProbingDepth()
         {
