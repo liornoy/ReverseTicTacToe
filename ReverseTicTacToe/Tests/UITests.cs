@@ -1,4 +1,5 @@
-﻿using System;
+﻿/*
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -28,7 +29,7 @@ namespace ReverseTicTacToe.Tests
             for (int i = 0; i < numOfTests; i++)
             {
                 Write("Test Number: " + i + ": ");
-                bool testRes = consoleUiManager.checkIsStringRepresentsNumberWithinRangeAndParse(strings[i], out outRes, min, max);
+                bool testRes = ReverseTicTacToe.UI.ConsoleUIManager.checkIsStringRepresentsNumberWithinRangeAndParse(strings[i], out outRes, min, max);
                 if (testRes != bools[i])
                 {
                     WriteLine("FAIL. " + testRes.ToString() + " != " + bools[i].ToString());
@@ -40,4 +41,4 @@ namespace ReverseTicTacToe.Tests
             }
         }
     }
-}
+*/
