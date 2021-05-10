@@ -49,7 +49,6 @@
     <Compile Include="Logic\ReverseTicTacToe.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Tests\UITests.cs" />
     <Compile Include="UI\ConsoleUIManager.cs" />
   </ItemGroup>
   <ItemGroup>

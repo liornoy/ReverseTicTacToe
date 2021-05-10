@@ -1,12 +1,12 @@
-﻿using System;
-using System.Text;
-
-namespace ReverseTicTacToe.UI
+﻿namespace ReverseTicTacToe.UI
 {
+    using System;
+    using System.Text;
+
     public class ConsoleUIManager
     {
-        private const int k_SeperatorBetweenLinesDuplicateFactor = 4;
-        private const int k_SeperatorBetweenLinesAddition = 1;
+        private const int k_SeparatorBetweenLinesDuplicateFactor = 4;
+        private const int k_SeparatorBetweenLinesAddition = 1;
         private const int k_MinBoardSize = 3;
         private const int k_MaxBoardSize = 9;
         private const int k_MinGameType = 1;
@@ -18,12 +18,15 @@ namespace ReverseTicTacToe.UI
         private const string k_QuitSymbol = "Q";
         private const string k_YesSymbol = "y";
         private const string k_NoSymbol = "n";
-        private const char k_LinesSeperatorChar = '=';
-        private const char k_CollumsSeperatorChar = '|';
+        private const char k_LinesSeparatorChar = '=';
+        private const char k_ColumnsSeparatorChar = '|';
         private string m_ErrorMessage;
         private bool m_FirstTurn;
         private Logic.ReverseTicTacToe m_Game;
 
+        /// <summary>
+        /// This function is the main loop of the game. It prints the board, get user input, and calls logic side to process each move.
+        /// </summary>
         public void Run()
         {
             bool gameRunning = true;
@@ -52,7 +55,7 @@ namespace ReverseTicTacToe.UI
         /// returns true if it in range, and also if true return the number in o_Number,
         /// else if false o_Number will be -1
         /// </summary>
-        private static bool CheckIsStringRepresentsNumberWithinRangeAndParse(string i_UserInputStr, out int o_Number,
+        private static bool checkIsStringRepresentsNumberWithinRangeAndParse(string i_UserInputStr, out int o_Number,
             int i_Min, int i_Max)
         {
             int num;
@@ -89,6 +92,10 @@ namespace ReverseTicTacToe.UI
             return stringBuilder.ToString();
         }
 
+        /// <summary>
+        /// This function initialize the UIManager, gets board size and game type from the user, and
+        /// creates the game logic object
+        /// </summary>
         private void init()
         {
             m_ErrorMessage = null;
@@ -173,18 +180,18 @@ namespace ReverseTicTacToe.UI
                     {
                         char symbol;
                         m_Game.GetSlotContentByIndex(i, j, out symbol);
-                        boardOutPut.AppendFormat("{0} {1} ", k_CollumsSeperatorChar, symbol);
+                        boardOutPut.AppendFormat("{0} {1} ", k_ColumnsSeparatorChar, symbol);
                     }
                 }
 
                 if (i > 0)
                 {
-                    boardOutPut.Append(k_CollumsSeperatorChar);
+                    boardOutPut.Append(k_ColumnsSeparatorChar);
                 }
                 
                 boardOutPut.Append(Environment.NewLine);
                 boardOutPut.Append(' ');
-                boardOutPut.Append(k_LinesSeperatorChar, (boardLength * k_SeperatorBetweenLinesDuplicateFactor) + k_SeperatorBetweenLinesAddition);
+                boardOutPut.Append(k_LinesSeparatorChar, (boardLength * k_SeparatorBetweenLinesDuplicateFactor) + k_SeparatorBetweenLinesAddition);
                 boardOutPut.Append(Environment.NewLine);
             }
 
@@ -235,7 +242,7 @@ namespace ReverseTicTacToe.UI
                 msg.AppendFormat("Game Over! {0} won! Players score:{1}", m_Game.Player2Name, Environment.NewLine);
             }
 
-            msg.AppendFormat("{0}: {1}{2}{3}: {4}", m_Game.Player1Name, m_Game.Player1Score, Environment.NewLine,m_Game.Player2Name, m_Game.Player2Score);
+            msg.AppendFormat("{0}: {1}{2}{3}: {4}", m_Game.Player1Name, m_Game.Player1Score, Environment.NewLine, m_Game.Player2Name, m_Game.Player2Score);
             Console.WriteLine(msg);
         }
 
@@ -316,7 +323,7 @@ namespace ReverseTicTacToe.UI
                 printErrorMsgIfAny();
                 Console.WriteLine(msg);
                 userInputStr = Console.ReadLine();
-                isValidInput = CheckIsStringRepresentsNumberWithinRangeAndParse(userInputStr, out boardSize,
+                isValidInput = checkIsStringRepresentsNumberWithinRangeAndParse(userInputStr, out boardSize,
                     k_MinBoardSize, k_MaxBoardSize);
                 if (!isValidInput)
                 {
@@ -345,7 +352,7 @@ namespace ReverseTicTacToe.UI
                 printErrorMsgIfAny();
                 Console.WriteLine(msg);
                 userInputStr = Console.ReadLine();
-                isValidInput = CheckIsStringRepresentsNumberWithinRangeAndParse(userInputStr,
+                isValidInput = checkIsStringRepresentsNumberWithinRangeAndParse(userInputStr,
                     out gameTypeNum, k_MinGameType, k_MaxGameType);
                 if (!isValidInput)
                 {

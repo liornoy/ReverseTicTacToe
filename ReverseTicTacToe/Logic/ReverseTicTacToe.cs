@@ -1,8 +1,7 @@
-﻿using System;
-using System.Text;
-
-namespace ReverseTicTacToe.Logic
+﻿namespace ReverseTicTacToe.Logic
 {
+    using System;
+
     public class ReverseTicTacToe
     {
         public enum eGameStatus
@@ -56,6 +55,7 @@ namespace ReverseTicTacToe.Logic
         private const eTurns k_DefaultFirstTurn = eTurns.Player1;
         private const int k_MinimumGameBoardDimension = 2;
         private const int k_MaximumGameBoardDimension = 100;
+
         // NOTE! -  be CAREFULL when chaning these AI constant! 
         // changing the AI-probing values may result in a TREMENDOUS increase in
         // the AI running time, which most PC's wouldn't be able to handle within
@@ -307,6 +307,7 @@ namespace ReverseTicTacToe.Logic
                                 }
                             }
                         }
+
                         // now we choose the move with the highest rating:
                         if (currentMoveRating >= currentHighestMoveRating)
                         {
