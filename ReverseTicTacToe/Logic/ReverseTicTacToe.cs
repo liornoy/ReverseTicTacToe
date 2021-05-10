@@ -191,6 +191,7 @@
         private void makeComputerMove()
         {
             int chosenRow, chosenCol;
+
             chooseSlotAI(out chosenRow, out chosenCol, getAIProbingDepth());
             makeMove(chosenRow, chosenCol);
         }
@@ -205,6 +206,7 @@
         {
             int probeDepth = k_AILargeScanningAreaDefaultProbingDepth;
             int emptySlots = GetCurrentEmptySlotsNumber();
+
             if (emptySlots >= k_AILowScanningAreaMax && emptySlots < k_AILargeScanningAreaMin)
             {
                 probeDepth = k_AIMediumScanningAreaDefaultProbingDepth;
@@ -260,10 +262,11 @@
         */
         private ulong chooseSlotAI(out int o_Row, out int o_Col, int i_ProbeDepth)
         {
-            o_Row = 1;
-            o_Col = 1;
             ulong overallRating = 0;
             ulong currentHighestMoveRating = 0;
+
+            o_Row = 1;
+            o_Col = 1;    
             if (GetCurrentEmptySlotsNumber() != 0 && i_ProbeDepth > 0)
             {
                 if (GetCurrentEmptySlotsNumber() == 1)
@@ -384,6 +387,7 @@
         private char[,] cloneGameBoard()
         {
             char[,] gameBoardCopy = new char[m_BoardDimension, m_BoardDimension];
+
             for (int i = 0; i < m_BoardDimension; i++)
             {
                 for (int j = 0; j < m_BoardDimension; j++)
@@ -418,6 +422,7 @@
         {
             const bool v_ForfeitSuccessful = true;
             bool isForfeitSuccessful = !v_ForfeitSuccessful;
+
             if (IsGameOver())
             {
                 o_ActionStatus = eLastActionStatus.FailedGameOver;
@@ -446,6 +451,7 @@
         public char GetCurrentPlayerChar()
         {
             char currentPlayerChar;
+
             if (m_CurrentTurn == eTurns.Player1)
             {
                 currentPlayerChar = m_Player1Char;
@@ -497,8 +503,8 @@
             bool isInsideSequence = v_insideSequence;
             int sequenceSize = 0;
             int nextRow = i_Row, nextCol = i_Col;
-            advanceToNextSlotInGivenDirection(ref nextRow, ref nextCol, i_ScanningDirection);
 
+            advanceToNextSlotInGivenDirection(ref nextRow, ref nextCol, i_ScanningDirection);
             while (IsSlotIndexWithinBounds(nextRow, nextCol) && isInsideSequence)
             {
                 if (m_GameBoard[i_Row - 1, i_Col - 1] == m_GameBoard[nextRow - 1, nextCol - 1])
@@ -516,9 +522,7 @@
         }
 
         // NOTE - This function does NOT check for out of bounds when advancing the indexes.
-        private void advanceToNextSlotInGivenDirection(
-            ref int io_Row,
-            ref int io_Col,
+        private void advanceToNextSlotInGivenDirection(ref int io_Row, ref int io_Col,
             eBoardScanningDirections i_Direction)
         {
             switch (i_Direction)
@@ -570,6 +574,7 @@
         {
             const bool v_SlotFree = true;
             bool isSlotFree;
+
             if (!IsSlotIndexWithinBounds(i_Row, i_Col))
             {
                 isSlotFree = !v_SlotFree;
@@ -586,6 +591,7 @@
         {
             const bool v_Successful = true;
             bool isSuccessful = !v_Successful;
+
             if (!IsSlotIndexWithinBounds(i_Row, i_Col))
             {
                 o_Char = k_AccessToSlotFailedChar;
