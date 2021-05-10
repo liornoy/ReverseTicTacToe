@@ -75,6 +75,11 @@ namespace ReverseTicTacToe.Logic
         private eGameStatus m_GameStatus;
         private Player m_Player1, m_Player2;
 
+        public static bool IsInRange(int i_Num, int i_Min, int i_Max)
+        {
+            return i_Num <= i_Max && i_Num >= i_Min;
+        }
+
         public ReverseTicTacToe(int i_BoardDimension, eGameMode i_GameMode)
         {
             m_BoardDimension = IsInRange(i_BoardDimension, k_MinimumGameBoardDimension, k_MaximumGameBoardDimension)
@@ -114,16 +119,10 @@ namespace ReverseTicTacToe.Logic
             return m_MovesMadeCounter == 0;
         }
 
-        public static bool IsInRange(int i_Num, int i_Min, int i_Max)
-        {
-            return i_Num <= i_Max && i_Num >= i_Min;
-        }
-
         public bool IsSlotIndexWithinBounds(int i_Row, int i_Col)
         {
             return IsInRange(i_Row, 1, m_BoardDimension) && IsInRange(i_Col, 1, m_BoardDimension);
         }
-
 
         public bool AttemptMove(int i_Row, int i_Col, out eLastActionStatus o_MoveStatus)
         {
@@ -176,7 +175,6 @@ namespace ReverseTicTacToe.Logic
                     m_Player1.Score++;
                 }
             }
-
             else if (IsBoardFull())
             {
                 m_GameStatus = eGameStatus.TieGame;
@@ -205,13 +203,12 @@ namespace ReverseTicTacToe.Logic
             {
                 probeDepth = k_AIMediumScanningAreaDefaultProbingDepth;
             }
-            if (emptySlots < k_AILowScanningAreaMax)
+            else if (emptySlots < k_AILowScanningAreaMax)
             {
                 probeDepth = k_AILowScanningAreaDefaultProbingDepth;
             }
 
             return probeDepth;
-
         }
 
         public int GetCurrentEmptySlotsNumber()
@@ -272,8 +269,8 @@ namespace ReverseTicTacToe.Logic
                     int currentBestMoveRow = 1, currentBestMoveCol = 1;
                     int rowWinScan = 1, colWinScan = 1, currentRow = 1, currentCol = 1;
                     int rowTemp, colTemp;
-                    ulong noLossScenarioRating = (ulong)((Math.Pow(2, Math.Pow(2, i_ProbeDepth)) * k_AINoLossScenarioIncreaseFactor);
-                    ulong winScenarioRating = (ulong)(Math.Pow(2, Math.Pow(2, i_ProbeDepth - 1)));
+                    ulong noLossScenarioRating = (ulong)(Math.Pow(2, Math.Pow(2, i_ProbeDepth)) * k_AINoLossScenarioIncreaseFactor);
+                    ulong winScenarioRating = (ulong)Math.Pow(2, Math.Pow(2, i_ProbeDepth - 1));
                     
                     for (int i = 1; i <= GetCurrentEmptySlotsNumber(); i++)
                     {
@@ -285,7 +282,7 @@ namespace ReverseTicTacToe.Logic
                         {
                             currentMoveRating += noLossScenarioRating; // we increase it's rating
                             overallRating += noLossScenarioRating;
-                            if(i_ProbeDepth > 1)
+                            if (i_ProbeDepth > 1)
                             {
                                 for (int j = 1; j < GetCurrentEmptySlotsNumber(); j++) // now checking possible moves by the (human) player, in response to our simlated move
                                 {
@@ -319,20 +316,16 @@ namespace ReverseTicTacToe.Logic
                         }
                         m_GameBoard[currentRow - 1, currentCol - 1] = m_EmptySlotChar; // emptying back the filled slot
                         m_MovesMadeCounter--;
-
                         currentMoveRating = 0;
                     }
 
                     o_Row = currentBestMoveRow;
                     o_Col = currentBestMoveCol;
-
                 }
-
             }
+
             return overallRating;
         }
-
-
 
         private bool getNextEmptySlotOnBoard(ref int io_Row, ref int io_Col)
         {
@@ -355,7 +348,7 @@ namespace ReverseTicTacToe.Logic
             {
                 while (slotScannedCounter <= (m_BoardDimension * m_BoardDimension) && !isEmptySlotFound)
                 {
-                    while(slotScannedCounter <= (m_BoardDimension * m_BoardDimension) && !isEmptySlotFound && io_Col <= m_BoardDimension)
+                    while (slotScannedCounter <= (m_BoardDimension * m_BoardDimension) && !isEmptySlotFound && io_Col <= m_BoardDimension)
                     {
                         if (m_GameBoard[io_Row - 1, io_Col - 1] == m_EmptySlotChar)
                         {
@@ -368,21 +361,16 @@ namespace ReverseTicTacToe.Logic
                         }
                         
                     }
-                    if(!isEmptySlotFound)
+                    if (!isEmptySlotFound)
                     {
                         io_Col = 1;
                         io_Row = (io_Row == m_BoardDimension) ? 1 : io_Row + 1;
                     }
-                    
                 }
             }
 
-           // Console.WriteLine(("The next empty slot is " + io_Row + ", " + io_Col + " \n"));
-
-
             return isEmptySlotFound;
         }
-
 
         private char[,] cloneGameBoard()
         {
@@ -638,6 +626,7 @@ namespace ReverseTicTacToe.Logic
             {
                 return m_Player2.Score;
             }
+
             set
             {
                 if (value >= 0)
@@ -654,6 +643,7 @@ namespace ReverseTicTacToe.Logic
                 return m_Player1.Name;
             }
         }
+
         public string Player2Name
         {
             get
@@ -668,6 +658,7 @@ namespace ReverseTicTacToe.Logic
             {
                 return m_GameMode;
             }
+
             set
             {
                 // INCOMPLETE
@@ -680,6 +671,7 @@ namespace ReverseTicTacToe.Logic
             {
                 return m_CurrentTurn;
             }
+
             set
             {
                 m_CurrentTurn = value;
@@ -693,7 +685,6 @@ namespace ReverseTicTacToe.Logic
                 return m_GameStatus;
             }
         }
-
         
         public class Player
         {
@@ -722,15 +713,11 @@ namespace ReverseTicTacToe.Logic
                 set
                 {
                     if (value >= 0)
+                    {
                         m_Score = value;
+                    }  
                 }
             }
-
         }
-
-
-
-
-
     }
 }

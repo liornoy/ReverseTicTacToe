@@ -127,6 +127,7 @@ namespace ReverseTicTacToe.UI
                     m_ErrorMessage = "invalid input";
                 }
             }
+
             while (!validInput);
 
             if (userAnswer == k_YesSymbol)
@@ -231,10 +232,10 @@ namespace ReverseTicTacToe.UI
             }
             else
             {
-                msg.AppendFormat("Game Over! {0} won! Players score:{1}", m_Game.Player2Name , Environment.NewLine);
+                msg.AppendFormat("Game Over! {0} won! Players score:{1}", m_Game.Player2Name, Environment.NewLine);
             }
 
-            msg.AppendFormat("{0}: {1}{2}{3}: {4}", m_Game.Player1Name,m_Game.Player1Score, Environment.NewLine,m_Game.Player2Name, m_Game.Player2Score);
+            msg.AppendFormat("{0}: {1}{2}{3}: {4}", m_Game.Player1Name, m_Game.Player1Score, Environment.NewLine,m_Game.Player2Name, m_Game.Player2Score);
             Console.WriteLine(msg);
         }
 
@@ -284,10 +285,10 @@ namespace ReverseTicTacToe.UI
             {
                 turnInputIsValid = v_IsValid;
             }
-            // Expecting here to have the following string: 
-            // "i,j" - where i is row and j is col.
             else
             {
+                // Expecting here to have the following string: 
+                // "i,j" - where i is row and j is col.
                 string[] splitedUserInputStrings = i_UserTurnInput.Split(',');
                 if (splitedUserInputStrings.Length == k_NumOfDimensions)
                 {
