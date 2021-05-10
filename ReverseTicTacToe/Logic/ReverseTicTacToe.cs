@@ -77,6 +77,7 @@
 
         public static bool IsInRange(int i_Num, int i_Min, int i_Max)
         {
+
             return i_Num <= i_Max && i_Num >= i_Min;
         }
 
@@ -101,8 +102,10 @@
         {
             get
             {
+
                 return m_BoardDimension;
             }
+
             set
             {
                 if (IsBoardClear() && IsInRange(value, k_MinimumGameBoardDimension, k_MaximumGameBoardDimension))
@@ -116,11 +119,13 @@
 
         public bool IsBoardClear()
         {
+
             return m_MovesMadeCounter == 0;
         }
 
         public bool IsSlotIndexWithinBounds(int i_Row, int i_Col)
         {
+            
             return IsInRange(i_Row, 1, m_BoardDimension) && IsInRange(i_Col, 1, m_BoardDimension);
         }
 
@@ -192,6 +197,7 @@
 
         public string getCurrentPlayerName()
         {
+
             return m_CurrentTurn == eTurns.Player1 ? m_Player1.Name : m_Player2.Name;
         }
 
@@ -213,6 +219,7 @@
 
         public int GetCurrentEmptySlotsNumber()
         {
+
             return (m_BoardDimension * m_BoardDimension) - m_MovesMadeCounter;
         }
 
@@ -302,6 +309,7 @@
                                         currentMoveRating += individualScenarioRating;
                                         overallRating += individualScenarioRating;
                                     }
+
                                     m_GameBoard[rowWinScan - 1, colWinScan - 1] = m_EmptySlotChar; // emptying back the filled slot
                                     m_MovesMadeCounter--;
                                 }
@@ -315,6 +323,7 @@
                             currentBestMoveRow = currentRow;
                             currentBestMoveCol = currentCol;
                         }
+
                         m_GameBoard[currentRow - 1, currentCol - 1] = m_EmptySlotChar; // emptying back the filled slot
                         m_MovesMadeCounter--;
                         currentMoveRating = 0;
@@ -344,7 +353,6 @@
                 io_Row = (io_Row == m_BoardDimension) ? 1 : io_Row + 1;
             }
 
-
             if (!IsBoardFull())
             {
                 while (slotScannedCounter <= (m_BoardDimension * m_BoardDimension) && !isEmptySlotFound)
@@ -359,9 +367,9 @@
                         {
                             slotScannedCounter++;
                             io_Col++;
-                        }
-                        
+                        }  
                     }
+
                     if (!isEmptySlotFound)
                     {
                         io_Col = 1;
@@ -386,7 +394,6 @@
 
             return gameBoardCopy;
         }
-
 
         public void RestartGame()
         {
@@ -453,6 +460,7 @@
 
         public bool IsBoardFull()
         {
+
             return m_MovesMadeCounter == m_BoardDimension * m_BoardDimension;
         }
 
@@ -480,7 +488,6 @@
 
             return isPartOfFullSequence;
         }
-
 
         // This function will scan the board, STARTING from the given slot(i_Row, i_Col), and TOWARDS the given direction.
         // It will return how many EQUAL SLOTS (to the starting slot) there are in that direction - NOT including the original slot.
@@ -547,7 +554,6 @@
             }
         }
 
-
         private void switchTurns()
         {
             m_CurrentTurn = (m_CurrentTurn == eTurns.Player1) ? eTurns.Player2 : eTurns.Player1;
@@ -555,6 +561,7 @@
 
         public bool IsGameOver()
         {
+
             return m_GameStatus == eGameStatus.Player1Won || m_GameStatus == eGameStatus.Player2Won
                                                            || m_GameStatus == eGameStatus.TieGame;
         }
@@ -609,8 +616,10 @@
         {
             get
             {
+
                 return m_Player1.Score;
             }
+
             set
             {
                 if (value > 0)
@@ -619,10 +628,12 @@
                 }
             }
         }
+
         public int Player2Score
         {
             get
             {
+
                 return m_Player2.Score;
             }
 
@@ -639,6 +650,7 @@
         {
             get
             {
+
                 return m_Player1.Name;
             }
         }
@@ -647,6 +659,7 @@
         {
             get
             {
+
                 return m_Player2.Name;
             }
         }
@@ -655,6 +668,7 @@
         {
             get
             {
+
                 return m_GameMode;
             }
 
@@ -676,6 +690,7 @@
         {
             get
             {
+
                 return m_CurrentTurn;
             }
 
@@ -689,6 +704,7 @@
         {
             get
             {
+
                 return m_GameStatus;
             }
         }
@@ -708,6 +724,7 @@
             {
                 get
                 {
+
                     return m_Name;
                 }
 
@@ -715,12 +732,13 @@
                 {
                     m_Name = new string(value.ToCharArray());
                 }
-
             }
+
             public int Score
             {
                 get
                 {
+
                     return m_Score;
                 }
                 
